@@ -1,5 +1,7 @@
 mod one;
+mod two;
 
 fn main() {
-    //one::one();
+    println!("{:?}", one::one_p1());
+    // two::two();
 }
