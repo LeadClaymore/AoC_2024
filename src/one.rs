@@ -4,7 +4,7 @@ use std::fs::File;
 use std::io::{self, BufRead};
 //use std::path::Path;
 
-pub fn one_p1() -> io::Result<()> {
+pub fn _one_p1() -> io::Result<()> {
     let mut left_nums = Vec::new();
     let mut right_nums = Vec::new();
     let mut answer = 0;
@@ -55,7 +55,7 @@ pub fn one_p1() -> io::Result<()> {
     Ok(())
 }
 
-pub fn one_p2() -> io::Result<()> {
+pub fn _one_p2() -> io::Result<()> {
     let mut left_nums = Vec::new();
     let mut right_nums = Vec::new();
     let mut left_rep = Vec::new();
