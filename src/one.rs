@@ -27,7 +27,7 @@ pub fn one_p1() -> io::Result<()> {
         let (left_num, right_num): (i32, i32) = serde_scan::from_str(&line).unwrap();
 
         //testing this prints the line
-        println!("{}", line);
+        //println!("{}", line);
 
         left_nums.push(left_num);
         right_nums.push(right_num);
@@ -52,5 +52,42 @@ pub fn one_p1() -> io::Result<()> {
     
     println!("answer: {}", answer);
 
+    Ok(())
+}
+
+pub fn one_p2() -> io::Result<()> {
+    let mut left_nums = Vec::new();
+    let mut right_nums = Vec::new();
+    let mut left_rep = Vec::new();
+    let mut answer = 0;
+
+    let reader = io::BufReader::new(File::open("data/one.txt")?);
+
+    for line_res in reader.lines() {
+        let line = line_res?;
+        
+        if line.trim().is_empty() {
+            continue;
+        }
+
+        let (left_num, right_num): (i32, i32) = serde_scan::from_str(&line).unwrap();
+
+        left_nums.push(left_num);
+        right_nums.push(right_num);
+        left_rep.push(0);
+    }
+    
+    for ii in 0..1000 {
+        for jj in 0..1000 {
+            if left_nums[ii] == right_nums[jj] {
+                left_rep[ii] += 1;
+            }
+        }
+    }
+
+    for ii in 0..1000 {
+        answer += left_rep[ii] * left_nums[ii];
+    }
+    println!("answer: {}", answer);
     Ok(())
 }
