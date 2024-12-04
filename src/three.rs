@@ -1,7 +1,8 @@
 use std::fs::File;
 use std::io::{self, BufRead};
 
-pub fn _three_p1() -> io::Result<()> {
+#[allow(dead_code, unused_assignments)]
+pub fn three_p1() -> io::Result<()> {
     let mut data: Vec<char> = Vec::new();
     let mut answer = 0;
 
@@ -24,6 +25,7 @@ pub fn _three_p1() -> io::Result<()> {
     Ok(())
 }
 
+#[allow(dead_code, unused_assignments)]
 fn find_mul(data: &Vec<char>) -> i32 {
     let mut ret: i32 = 0;
     let len = data.len();
@@ -100,7 +102,8 @@ fn find_mul(data: &Vec<char>) -> i32 {
     return ret;
 }
 
-pub fn _three_p2() -> io::Result<()> {
+#[allow(dead_code, unused_assignments)]
+pub fn three_p2() -> io::Result<()> {
     let mut data: Vec<char> = Vec::new();
     let mut answer = 0;
 
@@ -123,6 +126,7 @@ pub fn _three_p2() -> io::Result<()> {
     Ok(())
 }
 
+#[allow(dead_code, unused_assignments)]
 fn find_mul_p2(data: &Vec<char>) -> i32 {
     let mut ret: i32 = 0;
     let len = data.len();

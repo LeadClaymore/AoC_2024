@@ -1,8 +1,9 @@
 use std::fs::File;
 use std::io::{self, BufRead};
 
+#[allow(dead_code, unused_assignments)]
 pub fn two_p1() -> io::Result<()> {
-    let mut data:Vec<Vec<i32>> = Vec::new();
+    //let mut data:Vec<Vec<i32>> = Vec::new();
     let mut answer = 0;
 
     let reader = io::BufReader::new(File::open("data/two.txt")?);
@@ -77,8 +78,9 @@ pub fn two_p1() -> io::Result<()> {
     Ok(())
 }
 
+#[allow(dead_code, unused_assignments)]
 pub fn two_p2() -> io::Result<()> {
-    let mut data:Vec<Vec<i32>> = Vec::new();
+    //let mut data:Vec<Vec<i32>> = Vec::new();
     let mut answer = 0;
 
     let reader = io::BufReader::new(File::open("data/two.txt")?);
@@ -126,6 +128,7 @@ pub fn two_p2() -> io::Result<()> {
     Ok(())
 }
 
+#[allow(dead_code, unused_assignments)]
 fn check_line(line_data: &Vec<i32>) -> bool {
     let mut checker = -1;
     let mut decender = 0;
