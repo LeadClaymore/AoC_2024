@@ -112,3 +112,97 @@ pub fn four_p1() -> io::Result<()> {
     println!("answer = {}", answer);
     Ok(())
 }
+
+#[allow(dead_code, unused_assignments)]
+pub fn four_p2() -> io::Result<()> {
+    let mut data: Vec<Vec<char>> = Vec::new();
+    let mut answer = 0;
+
+    let reader = io::BufReader::new(File::open("data/four.txt")?);
+
+    for line_res in reader.lines() {
+        let line = line_res?;
+        let mut c_line = Vec::new();
+        if line.trim().is_empty() {
+            continue;
+        } else {
+            for ii in line.chars() {
+                //print!("{}", ii);
+                c_line.push(ii);
+            }
+            //println!("");
+            data.push(c_line);
+        }
+    }
+
+    // bounds of the cross word puzzle
+    let (x_bound, y_bound) = (data[0].len() as i32, data.len() as i32);
+
+    // I wanted the word to be able to change easily in case of the p2 
+    // and also it makes the code look better to me
+    let og_search_word = String::from("MAS");
+    let mut search_word = Vec::new();
+    for letter in og_search_word.chars() {
+        search_word.push(letter);
+    }
+    //length of the word
+    //let sw_len = search_word.len() as i32;
+
+    // this will hold the dirrection on the grid / graph that the cursor will check, could have been cleaner
+    let mut dirs: Vec<(i32, i32)> = Vec::new();
+    dirs.push((-1, 0));    // down
+    dirs.push((1, 0));     // up
+    dirs.push((0, 1));     // right
+    dirs.push((0, -1));    // left
+
+    // search
+    for ii in 0..data.len() {
+        for jj in 0..data[ii].len() {
+            //print!("{}", data[ii][jj]);
+            
+            // if the dirrections dont fall off the graph / grid
+            if 
+                ii > 0 && ii + 1 < y_bound as usize &&
+                jj > 0 && jj + 1 < x_bound as usize
+            {
+                if 
+                    data[ii - 1][jj - 1] == search_word[0] &&
+                    data[ii - 1][jj + 1] == search_word[0] &&
+                    data[ii][jj] == search_word[1] &&
+                    data[ii + 1][jj - 1] == search_word[2] &&
+                    data[ii + 1][jj + 1] == search_word[2]
+                {
+                    answer += 1;
+                } else if 
+                    data[ii + 1][jj + 1] == search_word[0] &&
+                    data[ii + 1][jj - 1] == search_word[0] &&
+                    data[ii][jj] == search_word[1] &&
+                    data[ii - 1][jj + 1] == search_word[2] &&
+                    data[ii - 1][jj - 1] == search_word[2]
+                {
+                    answer += 1;
+                } else if 
+                    data[ii - 1][jj + 1] == search_word[0] &&
+                    data[ii + 1][jj + 1] == search_word[0] &&
+                    data[ii][jj] == search_word[1] &&
+                    data[ii - 1][jj - 1] == search_word[2] &&
+                    data[ii + 1][jj - 1] == search_word[2]
+                {
+                    answer += 1;
+                } else if 
+                    data[ii - 1][jj + 1] == search_word[2] &&
+                    data[ii + 1][jj + 1] == search_word[2] &&
+                    data[ii][jj] == search_word[1] &&
+                    data[ii - 1][jj - 1] == search_word[0] &&
+                    data[ii + 1][jj - 1] == search_word[0]
+                {
+                    answer += 1;
+                }
+            }
+        }
+        //println!("");
+    }
+
+    println!("answer = {}", answer);
+    Ok(())
+}
