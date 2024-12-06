@@ -131,7 +131,7 @@ pub fn five_p2() -> io::Result<()> {
             println!("{rn_0},{rn_1} at {ri_0},{ri_1}")
         }
         while !found {
-            let ((rn_0, rn_1), (ri_0, ri_1)) = errors[0];
+            let ((rn_0, _rn_1), (ri_0, ri_1)) = errors[0];
             line.remove(ri_0 as usize);
             line.insert(ri_1 as usize, rn_0);
             print_line("tried line: ", &line);

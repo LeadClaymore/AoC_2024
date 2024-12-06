@@ -3,9 +3,11 @@ mod two;
 mod three;
 mod four;
 mod five;
+mod six;
 
 fn main() {
-    println!("{:?}", five::five_p2());
+    println!("{:?}", six::six_p1());
+    //println!("{:?}", five::five_p2());
     //println!("{:?}", five::five_p1());
     //println!("{:?}", four::four_p2());
     //println!("{:?}", four::four_p1());
