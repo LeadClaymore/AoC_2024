@@ -6,6 +6,7 @@ use std::io::{self, BufRead};
 enum Operator {
     Addition,
     Multiplication,
+    Concatanation,
     // Subtraction,
     // Division,
 }
@@ -13,13 +14,15 @@ impl Operator {
     fn apply_operator(&self, lhs: i64, rhs: i64) -> i64 {
         return match self {
             Operator::Addition => lhs + rhs,
-            Operator::Multiplication => lhs + rhs,
+            Operator::Multiplication => lhs * rhs,
+            Operator::Concatanation => format!("{}{}", lhs, rhs).parse().unwrap(),
         }
     }
 
     fn get_all_ops(&self, op_list: &mut Vec<Operator>) {
         op_list.push(Operator::Addition);
         op_list.push(Operator::Multiplication);
+        op_list.push(Operator::Concatanation);
         // op_list.push(Operator::Subtraction);
         // op_list.push(Operator::Division);
     }
@@ -28,6 +31,7 @@ impl Operator {
         return match &self {
             Operator::Addition => "+",
             Operator::Multiplication => "*",
+            Operator::Concatanation => "||",
         }
     }
 }
@@ -205,14 +209,21 @@ fn calc_line(line: &mut Vec<i64>, result: i64, operands: &mut Vec<Operator>) -> 
 
         for ii in 0..operands.len() {
             if operands[ii] == Operator::Multiplication {
-                let t_num = n_line[ii] * n_line[ii + 1];
+                let t_num = Operator::Multiplication.apply_operator(n_line[ii], n_line[ii + 1]);
                 n_line.remove(ii);
                 n_line.remove(ii);
                 n_line.insert(ii, t_num);
                 operands.remove(ii);
                 break;
             } else if operands[ii] == Operator::Addition {
-                let t_num = n_line[ii] + n_line[ii + 1];
+                let t_num = Operator::Addition.apply_operator(n_line[ii], n_line[ii + 1]);
+                n_line.remove(ii);
+                n_line.remove(ii);
+                n_line.insert(ii, t_num);
+                operands.remove(ii);
+                break;
+            } else if operands[ii] == Operator::Concatanation {
+                let t_num = Operator::Concatanation.apply_operator(n_line[ii], n_line[ii + 1]);
                 n_line.remove(ii);
                 n_line.remove(ii);
                 n_line.insert(ii, t_num);
