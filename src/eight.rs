@@ -54,11 +54,12 @@ fn print_data(data: &Vec<Vec<char>>) {
     }
 }
 
-fn process_data(data: &Vec<Vec<char>>, nodes: &mut Vec<Vec<Option<char>>>, anti_nodes: &mut Vec<Vec<Option<char>>>) {
+fn process_data(data: &Vec<Vec<char>>, _nodes: &mut Vec<Vec<Option<char>>>, anti_nodes: &mut Vec<Vec<Option<char>>>) {
     for ii in 0..data.len() {
         for jj in 0..data[ii].len() {
             if data[ii][jj] != '.' {
-                nodes[ii][jj] = Some(data[ii][jj]);
+                // this gets the location of the nodes if you want to split the nodes and anti nodes
+                anti_nodes[ii][jj] = Some(data[ii][jj]);
                 find_anti_node(data, anti_nodes, ii, jj);
             }
         }
@@ -89,16 +90,19 @@ fn find_anti_node(data: &Vec<Vec<char>>, anti_nodes: &mut Vec<Vec<Option<char>>>
             if data[ii][jj] == node && (ii, jj) != (n_ii, n_jj) {
                 // I want them to be i32 because I need to check if they are less then 0 and not have an integer underflow
                 // ii then jj
-                let n_anti_n = (ii as i32 + (ii as i32 - n_ii as i32), jj as i32 + (jj as i32 - n_jj as i32));
-                if within(
-                    n_anti_n.0, 
-                    n_anti_n.1, 
+                let n_anti_change = ((ii as i32 - n_ii as i32), (jj as i32 - n_jj as i32));
+                let mut c_anti = (ii as i32 + n_anti_change.0, jj as i32 + n_anti_change.1);
+                //TODO instead of getting the first antinode you need to take the distance (ii - n_ii) and while its on the map put another antinode on it
+                while within(
+                    c_anti.0, 
+                    c_anti.1, 
                     data.len(), data[0].len()
                 ) {
-                    if anti_nodes[n_anti_n.0 as usize][n_anti_n.1 as usize] != None {
-                        //overlap
-                    }
-                    anti_nodes[n_anti_n.0 as usize][n_anti_n.1 as usize] = Some(node);
+                    anti_nodes[c_anti.0 as usize][c_anti.1 as usize] = Some(node);
+                    c_anti = (c_anti.0 + n_anti_change.0, c_anti.1 + n_anti_change.1);
+                    // if anti_nodes[n_anti_n.0 as usize][n_anti_n.1 as usize] != None {
+                    //     //overlap
+                    // }
                 }
             }
         }
