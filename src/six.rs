@@ -108,7 +108,7 @@ pub fn six_p2() -> io::Result<()> {
     let mut graph = Vec::new();
     let mut move_graph = Vec::new();
     let (mut yy, mut xx) = (0, 0);
-    let mut dir = Dir::Up;
+    let mut _dir = Dir::Up;
     for ii in 0..data.len() {
         let mut n_line = Vec::new();
         let mut m_line = Vec::new();
@@ -129,13 +129,13 @@ pub fn six_p2() -> io::Result<()> {
         //println!("");
     }
 
-    let (x_max, y_max) = (graph[0].len() as i32, graph.len() as i32);
+    let (_x_max, _y_max) = (graph[0].len() as i32, graph.len() as i32);
     gen_move_graph(&graph, &mut move_graph, (xx as usize, yy as usize), None);
     
     let mut new_move_graph: Vec<Vec<Option<Dir>>> = Vec::new();
     for ii in 0..graph.len() {
         let mut new_m_graph = Vec::new();
-        for jj in 0..graph[ii].len() {
+        for _jj in 0..graph[ii].len() {
             new_m_graph.push(None);
         }
         new_move_graph.push(new_m_graph);
@@ -228,12 +228,12 @@ fn within_range(x: i32, y: i32, x_max: i32, y_max: i32) -> bool {
     x < x_max
 }
 
-fn print_graph(data: &Vec<Vec<bool>>, pos: (usize, usize)) {
+fn _print_graph(data: &Vec<Vec<bool>>, pos: (usize, usize)) {
     for ii in 0..data.len() {
         if ii == 0 {
             println!("");
             println!("");
-            for jj in 0..data[ii].len() {
+            for _jj in 0..data[ii].len() {
                 print!("-");
             }
             println!("");
