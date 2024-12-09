@@ -6,9 +6,11 @@ mod five;
 mod six;
 mod new_seven;
 mod eight;
+mod nine;
 
 fn main() {
-    println!("{:?}", eight::eight());
+    println!("{:?}", nine::nine());
+    //println!("{:?}", eight::eight());
     //println!("{:?}", new_seven::seven_p1());
     //println!("{:?}", six::six_p2());
     //println!("{:?}", six::six_p1());
