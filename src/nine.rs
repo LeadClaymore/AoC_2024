@@ -2,8 +2,6 @@ use std::fs::File;
 //use std::intrinsics::mir::BasicBlock;
 use std::io::{self, BufRead};
 
-
-
 #[allow(dead_code, unused_assignments)]
 pub fn nine() -> io::Result<()> {
     let mut data = Vec::new();
