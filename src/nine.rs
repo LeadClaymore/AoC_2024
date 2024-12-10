@@ -9,7 +9,7 @@ pub fn nine() -> io::Result<()> {
     let mut data = Vec::new();
     let mut answer = 0;
 
-    match read_data(String::from("data/nine_test.txt"), &mut data) {
+    match read_data(String::from("data/nine.txt"), &mut data) {
         Ok(_) =>  println!("Data read"),
         Err(ret) => return Err(ret),
     }
@@ -30,7 +30,7 @@ pub fn nine() -> io::Result<()> {
 
     build_blocks(&new_data, &mut blocks);
     //compress_blocks(&mut blocks);
-    compress_blocks_three(&mut blocks);
+    compress_blocks_four(&mut blocks);
     
     Ok(())
 }
@@ -110,8 +110,10 @@ fn find_answer(blocks: &Vec<Option<u32>>) {
     // dnw forgot that I need to mult by a number, I could do it with a move operation but ill learn to do that later
     // println!("{}", blocks.iter().filter(|c| c.is_numeric()).map(|c| c.to_digit(10).unwrap()).sum::<u32>());
     let (mut sum, mut inx) = (0, 0);
-    for c in blocks.iter().filter(|&c| c.is_some()).map(|c| c.unwrap()) {
-        sum += c as u128 * inx as u128;
+    for c in blocks {
+        if c.is_some() {
+            sum += c.unwrap() as u128 * inx as u128;
+        }
         inx += 1;
         // if inx == 10 {
         //     inx = 0;
@@ -142,6 +144,110 @@ fn compress_blocks_two(blocks: &mut Vec<Option<u32>>) {
 
 
     find_answer(blocks);
+}
+
+// currenly you block moved based on the free block had allready tried fillin that,
+// however I think i need to go back to finding the block and trying to squeeze it into a space
+// specificaly in order, once its tried 8888 and failed it SHOULD NEVER TRY AGAIN
+// DISPITE THAT BEING THE WORST WAY OF COMPRESSING STUFF IVE HEARD OF 
+// WHY WOULD YOU NOT WANT TO TRY THE LARGEST ONES FIRST THEN THE SMALL ONES LIKE C_B_2
+// OR IF YOU SO FANCY IGNORE HOLES LIKE THAT AND JUST TRY TO FILL EVERY HOLE
+// IVE SPENT FAR TOO LONG ON THIS STUPID INTERPERTATION OF A COMPRESSION SYSTEM
+// I SPENT 120 LINES ON P1 AND AT THIS POINT 230 ON THIS NEEDY CRAP
+
+// TODO:
+// so make a compress_blocks_four that uses the learned aspects of 3 and 2 that will 
+// go back to finding the block and trying to squeeze it into a space 
+// but this time simply try each block once rather then again
+// so to line out tommorow before starting on ten p1 you need to 
+// 1: find the last largest block filled aka '99' at the end
+// 2: take that block and find the first empty block (left of it) that can fit it
+// 2.1: if there is none, go back to 1 with the next number
+// 2.2: if there is no number then ur done thats it
+// 3 take the block and e_block and swap it, then go back to 1 with the next number
+// use the current num's, val and index to denote
+    // a: what the next val should be (aka val + 1)
+    // b: where the free space should be (aka 0..ii)
+// AND AFTERWARDS USE MS PAINT OR COMMENTS TO PLAN THIS CRAP OUT SO YOU CAN KNOW IF THE ALGORITHM IS SHODDY BEFORE YOU SPEND TIME WRITING IT
+fn compress_blocks_four(blocks: &mut Vec<Option<u32>>) {
+    let mut curr_block = None;
+    let mut empty_block = None;
+    let mut cur_num = blocks[blocks.len() - 1].unwrap_or(
+        //this should get the last some element and it should be valid to unwrap
+        blocks.iter().filter(|val| val.is_some()).last().unwrap().unwrap()
+    );
+    //println!("{}, {}, {}", idk.0, idk.1, blocks.len());
+    loop {
+        curr_block = find_curr_block(blocks, cur_num);
+        if curr_block.is_some() {
+            empty_block = get_empty_block(blocks, curr_block.unwrap().1);
+            //println!("cbi {}, cbs {}, cn {}, eb {}", curr_block.unwrap().0, curr_block.unwrap().1, cur_num, empty_block.unwrap_or(666));
+            if empty_block.is_some() && curr_block.unwrap().0 > empty_block.unwrap() {
+                recursive_swap(
+                    blocks, 
+                    empty_block.unwrap(), 
+                    empty_block.unwrap() + curr_block.unwrap().1, 
+                    curr_block.unwrap().0
+                );
+                //print_blocks(blocks);
+            }
+            if cur_num > 0 {
+                cur_num = cur_num - 1;
+            } else {
+                //good end
+                break;
+            }
+        } else {
+            break;
+        }
+    }
+    //print_blocks(blocks);
+    find_answer(blocks);
+}
+
+fn get_empty_block(blocks: &Vec<Option<u32>>, size: usize) -> Option<usize> {
+    // this iterates over the empty spots in blocks
+    for ii in blocks.iter().enumerate().filter(
+        |(_inx, &val)| val.is_none()
+        ).map(|(inx, _val)| inx) 
+    {
+        // if the size could fit
+        if ii + size < blocks.len() {
+            let mut works = true;
+            //this loops over the needed size starting at ii
+            for jj in ii..(ii + size) {
+                //println!("{}, {}, {}", ii, jj, size);
+                // if it one is not none then it fails
+                // and must try the next if possible
+                if blocks[jj].is_none() {
+                    continue;
+                }
+                works = false;
+                break;
+            }
+            // if the needed size exists then return the start of it
+            if works {
+                return Some(ii);
+            }
+        }
+    }
+    return None;
+}
+
+///returns a block of Option(index, size)
+fn find_curr_block(blocks: &Vec<Option<u32>>, cur_num: u32) -> Option<(usize, usize)> {
+    let mut ret = (0, 0);
+    let itt = blocks.iter().enumerate().filter(
+        |(_inx, &val)| val.is_some() && val.unwrap() == cur_num
+    );
+    ret.1 = itt.clone().count();
+    if ret.1 > 0 {
+        return Some((
+            itt.map(|(inx, _val)| inx ).next().unwrap(),
+            ret.1,
+        ));
+    }
+    return None;
 }
 
 fn compress_blocks_three(blocks: &mut Vec<Option<u32>>) {
@@ -338,7 +444,7 @@ fn find_last_full_block(blocks: &Vec<Option<u32>>) -> Option<(usize, usize)> {
 
 //works as expected
 fn recursive_swap(blocks: &mut Vec<Option<u32>>, s_inx: usize, e_inx: usize, to_inx: usize) -> bool {
-    let dif = e_inx - s_inx;
+    let dif = e_inx - s_inx - 1;
     if 
         e_inx < blocks.len() &&
         to_inx + dif < blocks.len()
