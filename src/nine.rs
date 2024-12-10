@@ -30,7 +30,7 @@ pub fn nine() -> io::Result<()> {
 
     build_blocks(&new_data, &mut blocks);
     //compress_blocks(&mut blocks);
-    compress_blocks_two(&mut blocks);
+    compress_blocks_three(&mut blocks);
     
     Ok(())
 }
@@ -86,9 +86,7 @@ fn build_blocks(data: &Vec<u32>, blocks: &mut Vec<Option<u32>>) {
             // }
         }
     }
-    // println!("");
-    // blocks.iter().for_each(|c| print!("{c}"));
-    // println!("");
+    print_blocks(blocks);
 }
 
 fn compress_blocks(blocks: &mut Vec<Option<u32>>) {
@@ -142,7 +140,136 @@ fn compress_blocks_two(blocks: &mut Vec<Option<u32>>) {
         }
     }
 
+
     find_answer(blocks);
+}
+
+fn compress_blocks_three(blocks: &mut Vec<Option<u32>>) {
+    let mut free_block = None;
+    let mut block_to_fill = None;
+    let mut failed = false;
+    let mut counter = 0;
+    let mut ii = 0;
+    loop {
+        counter += 1;
+        if counter == 100 {
+            break;
+        }
+        loop {
+            free_block = find_free_block(&blocks, ii);
+            if free_block.is_some() {
+                block_to_fill = find_block_to_fill(&blocks, free_block.unwrap().1);
+                if 
+                    block_to_fill.is_some() && free_block.unwrap().0 < block_to_fill.unwrap().0
+                {
+                    // this is the good option
+                    break;
+                }
+                //if it fails here it could not find a block to fill
+                ii = free_block.unwrap().0;
+            }
+            failed = true;
+            break;
+        }
+        if failed {
+            break;
+        } else {
+            if !recursive_swap(
+                blocks, 
+                free_block.unwrap().0, 
+                free_block.unwrap().0 + block_to_fill.unwrap().1, 
+                block_to_fill.unwrap().0
+            ) {
+                println!("fb: {}, fbs: {}, bf: {}, bfs: {}, b[fb]: {}, b[bf]: {}, b.len: {}", 
+                    free_block.unwrap().0,
+                    free_block.unwrap().1,
+                    block_to_fill.unwrap().0,
+                    block_to_fill.unwrap().1,
+                    blocks[free_block.unwrap().0].unwrap_or(666),
+                    blocks[block_to_fill.unwrap().0].unwrap_or(666),
+                    blocks.len(),
+                );
+                print_blocks(blocks);
+                break;
+            } else {
+                ii = free_block.unwrap().0 + free_block.unwrap().1;
+            }
+        }
+
+        println!("fb: {}, fbs: {}, bf: {}, bfs: {}, b[fb]: {}, b[bf]: {}, b.len: {}, ii: {}", 
+            free_block.unwrap().0,
+            free_block.unwrap().1,
+            block_to_fill.unwrap().0,
+            block_to_fill.unwrap().1,
+            blocks[free_block.unwrap().0].unwrap_or(666),
+            blocks[block_to_fill.unwrap().0].unwrap_or(666),
+            blocks.len(),
+            ii
+        );
+        print_blocks(blocks);
+    }
+
+    //println!("{}, {}", find_free_block(blocks, 0).unwrap().0, find_free_block(blocks, 0).unwrap().1);
+    print_blocks(blocks);
+    find_answer(blocks);
+}
+
+fn find_block_to_fill(blocks: &Vec<Option<u32>>, size_to_find: usize) -> Option<(usize, usize)> {
+    let mut c_inv_start_inx = blocks.len();
+    let mut c_size = 0;
+    let mut to_find = None;
+
+    for ii in blocks.iter().rev()//.skip(blocks.len() - 1)
+        .enumerate().filter(|(_inx, &val)| val.is_some())
+        .map(|(inx,  _val)| inx)
+    {
+        let rev_inx = blocks.len() - 1 - ii;
+
+        if to_find.is_none() {
+            to_find = blocks[rev_inx].clone();
+            c_size = 1;
+            c_inv_start_inx = rev_inx;
+        } else if to_find.unwrap() == blocks[rev_inx].unwrap() {
+            c_size += 1;
+        } else if to_find.unwrap() != blocks[rev_inx].unwrap() {
+            if c_size <= size_to_find {
+                return Some((c_inv_start_inx - c_size + 1, c_size - 1));
+            } else {
+                to_find = blocks[rev_inx].clone();
+                c_size = 1;
+                c_inv_start_inx = rev_inx;
+            }
+        }
+    }
+    return None;
+}
+
+/// free_block is (index, size), index_skip is where in blocks to start
+fn find_free_block(blocks: &Vec<Option<u32>>, index_skip: usize) -> Option<(usize, usize)> {
+    let mut c_start_inx = index_skip;
+    let mut c_count = 0;
+
+    for ii in index_skip..blocks.len() {
+        if blocks[ii].is_none() {
+            if c_start_inx == index_skip {
+                c_start_inx = ii;
+                c_count += 1;
+            } else if c_start_inx + c_count == ii {
+                c_count += 1;
+            } else {
+                break;
+            }
+        } else {
+            if c_start_inx != index_skip {
+                break;
+            }
+        }
+    }
+    
+    if c_start_inx != index_skip {
+        return Some((c_start_inx, c_count));
+    }
+    return None;
 }
 
 fn find_empty_space(blocks: &Vec<Option<u32>>, size: usize) -> Option<usize> {
@@ -209,7 +336,8 @@ fn find_last_full_block(blocks: &Vec<Option<u32>>) -> Option<(usize, usize)> {
     }
 }
 
-fn recursive_swap(blocks: &mut Vec<Option<u32>>, s_inx: usize, e_inx: usize, to_inx: usize) {
+//works as expected
+fn recursive_swap(blocks: &mut Vec<Option<u32>>, s_inx: usize, e_inx: usize, to_inx: usize) -> bool {
     let dif = e_inx - s_inx;
     if 
         e_inx < blocks.len() &&
@@ -219,8 +347,10 @@ fn recursive_swap(blocks: &mut Vec<Option<u32>>, s_inx: usize, e_inx: usize, to_
             blocks.swap(s_inx + ii, to_inx + ii);
         }
     } else {
-        println!("error trying to swap s: {s_inx}, e: {e_inx}, to: {to_inx}")
+        println!("error trying to swap s: {s_inx}, e: {e_inx}, to: {to_inx}");
+        return false;
     }
+    return true;
 }
 
 
