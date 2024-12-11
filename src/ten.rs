@@ -5,7 +5,7 @@ use std::io::{self, BufRead};
 pub fn ten() -> io::Result<()> {
     let mut data = Vec::new();
 
-    match read_data(String::from("data/ten/ten.txt"), &mut data) {
+    match read_data(String::from("data/ten/ten_test.txt"), &mut data) {
         Ok(_) =>  println!("Data read"),
         Err(ret) => return Err(ret),
     }
@@ -80,16 +80,18 @@ fn print_processed_data(data: &Vec<Vec<u32>>) {
 #[allow(dead_code, unused_assignments)]
 fn find_trails(processed_data: &Vec<Vec<u32>>) {
     let mut sum = 0;
+    let mut sum2 = 0;
     for ii in 0..processed_data.len() {
         for jj in 0..processed_data[ii].len() {
             if processed_data[ii][jj] == 0 {
                 if let Some(path) = rec_score_head(&processed_data, (ii, jj), 0) {
+                    sum2 += path.len();
                     sum += count_unique_paths(&path);
                 }
             }
         }
     }
-    println!("answer = {}", sum);
+    println!("answer = {}, answer2 = {}", sum, sum2);
 }
 
 //TODO currently you find each way you can reach 9 but you need to find each 9 you can reach
