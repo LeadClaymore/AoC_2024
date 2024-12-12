@@ -47,7 +47,7 @@ fn calc_data(data: &Vec<Vec<char>>) {
     let mut total_prim = 0;
     let mut total_price = 0;
     for ii in 0..data.len() {
-        for jj in 0..data.len() {
+        for jj in 0..data[ii].len() {
             // this 
             if used_data[ii][jj] != '.' {
                 let temp_c = used_data[ii][jj];
@@ -56,6 +56,14 @@ fn calc_data(data: &Vec<Vec<char>>) {
                     total_area += area;
                     total_prim += prim;
                     total_price += area * prim;
+
+                    for t_ii in 0..data.len() {
+                        for t_jj in 0..data[t_ii].len() {
+                            if used_data[t_ii][t_jj] == '-' {
+                                used_data[t_ii][t_jj] ='.';
+                            }
+                        }
+                    }
                 } else {
                     println!("error at ({}, {}) within {}, found '-' ", ii, jj, used_data[ii][jj]);
                 }
@@ -68,6 +76,8 @@ fn calc_data(data: &Vec<Vec<char>>) {
 // current iteration goes off of an refrence so changes done elsewhere do not happen,
 // I had the same problem in the trail problem, ill have to return positions of each to not dupe
 // or get better at multithreaded opperation so I could use an constant update rather then a ref
+
+//nvm I found an hacky way of fixing it
 
 /// returns (area, perimeter)
 #[allow(dead_code, unused_assignments)]
@@ -134,7 +144,7 @@ fn calc_plot(used_data: &mut Vec<Vec<char>>, p: (usize, usize), c: char) -> Opti
     }
 
     //after all the sides are done, set this to used
-    used_data[p.0][p.1] = '.';
+    //used_data[p.0][p.1] = '.';
 
     // +1 because it is it self
     return Some((r_a + 1, r_p));
