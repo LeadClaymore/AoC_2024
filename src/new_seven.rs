@@ -1,5 +1,5 @@
-use std::fmt::format;
-use std::fs::{File, OpenOptions};
+//use std::fmt::format;
+use std::fs::File;
 use std::io::{self, BufRead};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -39,7 +39,7 @@ impl Operator {
 #[allow(dead_code, unused_assignments)]
 pub fn seven_p1() -> io::Result<()> {
     let mut data = Vec::new();
-    let mut answer = 0;
+    //let mut answer = 0;
 
     match read_data(String::from("data/seven.txt"), &mut data) {
         Ok(_) =>  println!("Data read"),

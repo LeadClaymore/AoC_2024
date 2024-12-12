@@ -5,7 +5,7 @@ use std::io::{self, BufRead};
 #[allow(dead_code, unused_assignments)]
 pub fn nine() -> io::Result<()> {
     let mut data = Vec::new();
-    let mut answer = 0;
+    //let mut answer = 0;
 
     match read_data(String::from("data/nine.txt"), &mut data) {
         Ok(_) =>  println!("Data read"),
@@ -51,6 +51,7 @@ fn read_data(file: String, data: &mut Vec<Vec<char>>) -> io::Result<()> {
     Ok(())
 }
 
+#[allow(dead_code, unused_assignments)]
 fn print_data(data: &Vec<Vec<char>>) {
     data.iter().for_each(|line| {
         line.iter().for_each(|letter| {
@@ -87,6 +88,7 @@ fn build_blocks(data: &Vec<u32>, blocks: &mut Vec<Option<u32>>) {
     print_blocks(blocks);
 }
 
+#[allow(dead_code, unused_assignments)]
 fn compress_blocks(blocks: &mut Vec<Option<u32>>) {
     let mut dd = blocks.iter().position(|&c| c.is_none()).unwrap();
     let mut nn = blocks.len() - 1 - blocks.iter().rev().position(|&c| c.is_some()).unwrap();
@@ -120,6 +122,7 @@ fn find_answer(blocks: &Vec<Option<u32>>) {
     println!("answer = {sum}");
 }
 
+#[allow(dead_code, unused_assignments)]
 fn compress_blocks_two(blocks: &mut Vec<Option<u32>>) {
     let mut f_block = find_last_full_block(&blocks);
     let mut e_block = None;
@@ -166,7 +169,9 @@ fn compress_blocks_two(blocks: &mut Vec<Option<u32>>) {
 // use the current num's, val and index to denote
     // a: what the next val should be (aka val + 1)
     // b: where the free space should be (aka 0..ii)
-// AND AFTERWARDS USE MS PAINT OR COMMENTS TO PLAN THIS CRAP OUT SO YOU CAN KNOW IF THE ALGORITHM IS SHODDY BEFORE YOU SPEND TIME WRITING IT
+// AND AFTERWARDS USE MS PAINT OR COMMENTS TO PLAN THIS CRAP OUT SO YOU CAN KNOW IF THE ALGORITHM IS SHODDY BEFORE YOU SPEND TIME WRITING IT.
+
+#[allow(dead_code, unused_assignments)]
 fn compress_blocks_four(blocks: &mut Vec<Option<u32>>) {
     let mut curr_block = None;
     let mut empty_block = None;
@@ -248,6 +253,7 @@ fn find_curr_block(blocks: &Vec<Option<u32>>, cur_num: u32) -> Option<(usize, us
     return None;
 }
 
+#[allow(dead_code, unused_assignments)]
 fn compress_blocks_three(blocks: &mut Vec<Option<u32>>) {
     let mut free_block = None;
     let mut block_to_fill = None;
@@ -318,6 +324,7 @@ fn compress_blocks_three(blocks: &mut Vec<Option<u32>>) {
     find_answer(blocks);
 }
 
+#[allow(dead_code, unused_assignments)]
 fn find_block_to_fill(blocks: &Vec<Option<u32>>, size_to_find: usize) -> Option<(usize, usize)> {
     let mut c_inv_start_inx = blocks.len();
     let mut c_size = 0;
@@ -348,6 +355,7 @@ fn find_block_to_fill(blocks: &Vec<Option<u32>>, size_to_find: usize) -> Option<
     return None;
 }
 
+#[allow(dead_code, unused_assignments)]
 /// free_block is (index, size), index_skip is where in blocks to start
 fn find_free_block(blocks: &Vec<Option<u32>>, index_skip: usize) -> Option<(usize, usize)> {
     let mut c_start_inx = index_skip;
@@ -376,6 +384,7 @@ fn find_free_block(blocks: &Vec<Option<u32>>, index_skip: usize) -> Option<(usiz
     return None;
 }
 
+#[allow(dead_code, unused_assignments)]
 fn find_empty_space(blocks: &Vec<Option<u32>>, size: usize) -> Option<usize> {
     // this gets an iterator of the indexs of blocks that are none
     // enumerate seperates it into an iterator of a collection of (index, value)
@@ -408,6 +417,7 @@ fn find_empty_space(blocks: &Vec<Option<u32>>, size: usize) -> Option<usize> {
     return None;
 }
 
+#[allow(dead_code, unused_assignments)]
 /// returns (last index, how many index)
 fn find_last_full_block(blocks: &Vec<Option<u32>>) -> Option<(usize, usize)> {
     let mut num_to_find = None;
@@ -440,6 +450,7 @@ fn find_last_full_block(blocks: &Vec<Option<u32>>) -> Option<(usize, usize)> {
     }
 }
 
+#[allow(dead_code, unused_assignments)]
 //works as expected
 fn recursive_swap(blocks: &mut Vec<Option<u32>>, s_inx: usize, e_inx: usize, to_inx: usize) -> bool {
     let dif = e_inx - s_inx - 1;

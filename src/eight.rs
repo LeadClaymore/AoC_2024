@@ -4,7 +4,7 @@ use std::io::{self, BufRead};
 #[allow(dead_code, unused_assignments)]
 pub fn eight() -> io::Result<()> {
     let mut data = Vec::new();
-    let mut answer = 0;
+    //let mut answer = 0;
 
     match read_data(String::from("data/eight.txt"), &mut data) {
         Ok(_) =>  println!("Data read"),
