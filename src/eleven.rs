@@ -68,7 +68,7 @@ fn process_data(data: &Vec<char>, processed_data: &mut Vec<u64>) {
 
 #[allow(dead_code, unused_assignments)]
 fn apply_blink(line: &mut Vec<u64>) {
-    //let mut new_line = Vec::new();
+    let mut new_line = Vec::new();
     let mut ii = 0;
     while ii < line.len() {
         if line[ii] == 0 {
@@ -77,8 +77,9 @@ fn apply_blink(line: &mut Vec<u64>) {
         } else if let Some((left, right)) = has_even_digits2(line[ii]) {
             //println!("\nii: {}, l: {}, r: {}", ii, left, right);
             line[ii] = right;
-            line.insert(ii, left);
-            ii += 1;
+            new_line.push(left);
+            //ii += 1;
+
             // new_line.push(left);
             // new_line.push(right);
             //print!("lr {left} {right} ");
@@ -88,7 +89,26 @@ fn apply_blink(line: &mut Vec<u64>) {
         }
         ii += 1;
     }
+    for ii in new_line {
+        line.push(ii);
+    }
     //println!("");
+}
+
+fn has_even_digits2(num: u64) -> Option<(u64, u64)> {
+    let mut temp_num = num;
+    let mut count = 0;
+    while temp_num > 0 {
+        temp_num /= 10;
+        count += 1;
+    }
+    if count % 2 == 1 || count == 0 {
+        return None;
+    }
+    return Some((
+        num / u64::pow(10, count / 2), 
+        num % u64::pow(10, count / 2)
+    ));
 }
 
 #[allow(dead_code, unused_assignments)]
@@ -118,22 +138,6 @@ fn has_even_digits(num: u64) -> Option<(u64, u64)> {
         return Some(ret);
     }
     return None;
-}
-
-fn has_even_digits2(num: u64) -> Option<(u64, u64)> {
-    let mut temp_num = num;
-    let mut count = 0;
-    while temp_num > 0 {
-        temp_num /= 10;
-        count += 1;
-    }
-    if count % 2 == 1 || count == 0 {
-        return None;
-    }
-    return Some((
-        num / u64::pow(10, count / 2), 
-        num % u64::pow(10, count / 2)
-    ));
 }
 
 //test
