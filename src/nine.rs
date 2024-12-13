@@ -210,9 +210,10 @@ fn compress_blocks_four(blocks: &mut Vec<Option<u32>>) {
 
 fn get_empty_block(blocks: &Vec<Option<u32>>, size: usize) -> Option<usize> {
     // this iterates over the empty spots in blocks
-    for ii in blocks.iter().enumerate().filter(
-        |(_inx, &val)| val.is_none()
-        ).map(|(inx, _val)| inx) 
+    for ii in blocks.iter()
+        .enumerate()
+        .filter(|(_inx, &val)| val.is_none())
+        .map(|(inx, _val)| inx)
     {
         // if the size could fit
         if ii + size < blocks.len() {
