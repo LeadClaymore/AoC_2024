@@ -1,3 +1,4 @@
+use std::clone;
 use std::fs::File;
 use std::io::{self, BufRead};
 
@@ -52,7 +53,8 @@ fn calc_data(data: &Vec<Vec<char>>) {
             if used_data[ii][jj] != '.' {
                 let temp_c = used_data[ii][jj];
                 if let Some(mut plot) = calc_plot(&mut used_data, (ii, jj), temp_c) {
-                    let (area, prim, price) = process_plot(&mut plot);
+                    //TODO calc plot is finding stuff but its not getting to process_plot
+                    let (area, prim, price) = process_plot(&plot);
                     println!("plot {ii}, {jj} has area: {area}, {prim} as {temp_c}");
                     total_area += area;
                     total_prim += prim;
@@ -136,12 +138,13 @@ fn calc_plot(used_data: &mut Vec<Vec<char>>, p: (usize, usize), c: char) -> Opti
 }
 
 /// returns (area, prim, price) and the vec taken is (ii, jj)
-fn process_plot(plot: &mut Vec<(usize, usize)>) -> (u32, u32, u32) {
+fn process_plot(plot: &Vec<(usize, usize)>) -> (u32, u32, u32) {
     let (mut area, mut prim, mut price) = (0, 0, 0);
     //let mut unique_plot: Vec<(usize, usize)> = Vec::new();
     let (mut min_ii, mut max_ii) = (0, 0);
     let (mut min_jj, mut max_jj) = (0, 0);
     for ii in 0..plot.len() {
+        print!("A");
         if ii == 0 {
             min_ii = plot[0].0;
             min_jj = plot[0].1;
@@ -174,6 +177,7 @@ fn process_plot(plot: &mut Vec<(usize, usize)>) -> (u32, u32, u32) {
     }
 
     let (ofst_ii, ofst_jj) = (max_ii - min_ii, max_jj - min_jj);
+    println!("\nmaii {}, miii {}, majj {}, mijj {}, oii {}, ojj {},",max_ii, min_ii, max_jj, min_jj, ofst_ii, ofst_jj);
 
     let mut inv_plot = Vec::new();
     for _ii in 0..=ofst_ii {
@@ -187,7 +191,17 @@ fn process_plot(plot: &mut Vec<(usize, usize)>) -> (u32, u32, u32) {
     for pos in plot {
         inv_plot[pos.0 - ofst_ii][pos.1 - ofst_jj] = true;
     }
-
+    println!("");
+    for line in &inv_plot {
+        for &e in line {
+            if e {
+                print!("#");
+            } else {
+                print!(".");
+            }
+        }
+        println!("");
+    }
     // Ok so now I have an map of the plot out of booleans
     // im going to search the first row untill I hit a true
     // this will get me a spot on the plot with 2 key features
@@ -225,20 +239,54 @@ fn process_plot(plot: &mut Vec<(usize, usize)>) -> (u32, u32, u32) {
         println!("stuff not found");
         return (0, 0, 0);
     }
+    prim = 1;
+    let s_pos = pos;
+    let mut c_dir = Dir::Right;
+    let mut adj = Adj::new();
+    adj.get_suroundings(&inv_plot, pos);
+    let (mut r_ii, mut r_jj);
+    if let Some(ret) = adj.valid_dir(c_dir) {
+        let t_dir = c_dir.clone();
+        (c_dir, (r_ii, r_jj)) = ret;
+        pos.0 = (pos.0 as i8 + r_ii) as usize;
+        pos.1 = (pos.1 as i8 + r_jj) as usize;
+        if t_dir != c_dir {
+            prim += 1;
+        }
+    } else {
+        println!("found but starting dir not found");
+        return (0, 0, 0);
+    }
 
-    // dirs is right, up, left, down
-    let mut dirs = Dir::Right;
-    let side_count = 1;
-    //TODO
-    // loop {
-    //     if 
-    //     break;
-    // }
+    loop {
+        if pos == s_pos {
+            prim += 1;
+            if c_dir == Dir::Left {
+                prim += 1;
+            }
+            break;
+        }
+        adj.get_suroundings(&inv_plot, pos);
+        if let Some(ret) = adj.valid_dir(c_dir) {
+            let t_dir = c_dir;
+            (c_dir, (r_ii, r_jj)) = ret;
+            pos.0 = (pos.0 as i8 + r_ii) as usize;
+            pos.1 = (pos.1 as i8 + r_jj) as usize;
+            if t_dir != c_dir {
+                prim += 1;
+            }
+        } else {
+            println!("error at prim == {}", prim);
+            return (0, 0, 0);
+        }
+    }
     let area  = inv_plot.iter().flatten().filter(|&& val| val).count() as u32;
+
     return (area, prim, price);
 }
 
 #[allow(dead_code, unused_assignments)]
+#[derive(PartialEq, Eq, Clone, Copy)]
 enum Dir {
     Right,
     Up,
@@ -247,6 +295,7 @@ enum Dir {
 }
 
 #[allow(dead_code, unused_assignments)]
+//#[derive(PartialEq, Eq)]
 struct Adj {
     u: Option<bool>,
     d: Option<bool>,
@@ -304,8 +353,114 @@ impl Adj {
         }
     }
 
-    fn valid_dir(&self, c_dir: Dir) {
-
+    /// returns Some(Dir, (ii, jj))
+    fn valid_dir(&self, c_dir: Dir) -> Option<(Dir, (i8, i8))> {
+        return match c_dir {
+            Dir::Right => {
+                if 
+                    // right is true
+                    self.r.is_some() && self.r.unwrap() &&
+                    //up right is false
+                    (self.ur.is_some() && !self.ur.unwrap() || self.ur.is_none()) 
+                {
+                    Some((Dir::Right, (0, 1)))
+                } else if 
+                    // right is true
+                    self.r.is_some() && self.r.unwrap() &&
+                    // up right is true
+                    self.ur.is_some() && self.ur.unwrap() &&
+                    // up is false
+                    (self.u.is_some() && !self.u.unwrap() || self.u.is_none()) 
+                {
+                    Some((Dir::Up, (-1, 1)))
+                } else if 
+                    // right is false
+                    self.r.is_some() && !self.r.unwrap() || self.r.is_none()
+                {
+                    Some((Dir::Down, (0, 0)))
+                } else {
+                    None
+                }
+            },
+            Dir::Up => {
+                if 
+                    // up is true
+                    self.u.is_some() && self.u.unwrap() &&
+                    // up left is false
+                    (self.ul.is_some() && !self.ul.unwrap() || self.ul.is_none()) 
+                {
+                    Some((Dir::Up, (-1, 0)))
+                } else if 
+                    // up is true
+                    self.u.is_some() && self.u.unwrap() &&
+                    // up left is true
+                    self.ul.is_some() && self.ul.unwrap() &&
+                    // left is false
+                    (self.l.is_some() && !self.l.unwrap() || self.l.is_none()) 
+                {
+                    Some((Dir::Left, (-1, -1)))
+                } else if 
+                    // up is false
+                    self.u.is_some() && !self.u.unwrap() || self.u.is_none()
+                {
+                    Some((Dir::Right, (0, 0)))
+                } else {
+                    None
+                }
+            },
+            Dir::Left => {
+                if 
+                    // left is true
+                    self.l.is_some() && self.l.unwrap() &&
+                    // down left is false
+                    (self.dl.is_some() && !self.dl.unwrap() || self.dl.is_none()) 
+                {
+                    Some((Dir::Left, (0, -1)))
+                } else if 
+                    // left is true
+                    self.l.is_some() && self.l.unwrap() &&
+                    // down left is true
+                    self.dl.is_some() && self.dl.unwrap() &&
+                    // down is false
+                    (self.d.is_some() && !self.d.unwrap() || self.d.is_none()) 
+                {
+                    Some((Dir::Down, (1, -1)))
+                } else if 
+                    // left is false
+                    self.l.is_some() && !self.l.unwrap() || self.l.is_none()
+                {
+                    Some((Dir::Up, (0, 0)))
+                } else {
+                    None
+                }
+            },
+            Dir::Down => {
+                if 
+                    // Down is true
+                    self.d.is_some() && self.d.unwrap() &&
+                    // down right is false
+                    (self.dr.is_some() && !self.dr.unwrap() || self.dr.is_none()) 
+                {
+                    Some((Dir::Down, (-1, 0)))
+                } else if 
+                    // down is true
+                    self.d.is_some() && self.d.unwrap() &&
+                    // down right is true
+                    self.dr.is_some() && self.dr.unwrap() &&
+                    // right is false
+                    (self.r.is_some() && !self.r.unwrap() || self.r.is_none()) 
+                {
+                    Some((Dir::Right, (-1, 1)))
+                } else if 
+                    // down is false
+                    self.d.is_some() && !self.d.unwrap() || self.d.is_none()
+                {
+                    Some((Dir::Left, (0, 0)))
+                } else {
+                    None
+                }
+            },
+        };
     }
 }
 //end
