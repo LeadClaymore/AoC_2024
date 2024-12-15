@@ -12,8 +12,8 @@ mod eleven;
 mod twelve;
 
 fn main() {
-    println!("{:?}", twelve::twelve());
-    //println!("{:?}", eleven::eleven());
+    //println!("{:?}", twelve::twelve());
+    println!("{:?}", eleven::eleven());
     //println!("{:?}", ten::ten());
     //println!("{:?}", nine::nine());
     //println!("{:?}", eight::eight());

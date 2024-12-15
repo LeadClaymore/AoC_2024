@@ -143,6 +143,7 @@ fn calc_plot(used_data: &mut Vec<Vec<char>>, p: (usize, usize), c: char) -> Opti
     return Some(ret);
 }
 
+#[allow(dead_code, unused_assignments)]
 /// returns (area, prim, price) and the vec taken is (ii, jj)
 fn process_plot(plot: &Vec<(usize, usize)>) -> (u32, u32, u32) {
     //let mut unique_plot: Vec<(usize, usize)> = Vec::new();

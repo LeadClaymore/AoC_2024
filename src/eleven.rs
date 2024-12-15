@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::thread;
@@ -13,40 +14,8 @@ pub fn eleven() -> io::Result<()> {
     }
     //print_data(&data);
     let mut processed_data = process_data(&data[0]);
-    let mut handles;
+    iteration_two(&processed_data);
     
-    //processed_data.iter().for_each(|num| print!("{num} "));
-    for ii in 0..75 {
-        let mut new_data = Vec::new();
-
-        // Split the vector into chunks
-        let chunk_size = (processed_data.len() + 29) / 30;
-        let chunks: Vec<Vec<u32>> = processed_data.chunks(chunk_size)
-            .map(|chunk| chunk.to_vec())
-            .collect();
-
-        handles = Vec::with_capacity(chunks.len());
-        for chunk in chunks.into_iter() {
-            //let chunk_data = chunk.to_vec();
-            let handle = thread::spawn(move || {
-                apply_blink(&chunk)
-            });
-            handles.push(handle);
-        }
-        for handle in handles {
-            match handle.join() {
-                Ok(chunk_ret) => new_data.extend(chunk_ret),
-                Err(e) => println!("error with line {}: {:?}", ii + 1, e),
-            }
-        }
-        processed_data.clear();
-        processed_data = new_data;
-        //new_data.append(apply_blink(&processed_data));
-
-        //println!("");
-        //processed_data.iter().for_each(|num| print!("{num} "));
-        println!("answer line {} = {}", ii + 1, processed_data.len());
-    }
     Ok(())
 }
 
@@ -80,12 +49,79 @@ fn print_data(data: &Vec<Vec<char>>) {
 }
 
 #[allow(dead_code, unused_assignments)]
-fn process_data(data: &Vec<char>) -> Vec<u32>{
+fn iteration_two(data: &Vec<u128>) {
+    let mut hmap = HashMap::new();
+    for &num in data {
+        *hmap.entry(num).or_insert(0 as usize) += 1;
+    }
+
+    for blk in 1..=75 {
+        hmap = apply_blink_v2(&hmap);
+        let c_nums = hmap.iter().map(|(i, j)| j).sum::<usize>();
+        println!("answer line {} = int: {}, c_nums: {}", blk, hmap.len(), c_nums);
+    }
+}
+
+#[allow(dead_code, unused_assignments)]
+fn apply_blink_v2(hmap: &HashMap<u128, usize>) -> HashMap<u128, usize> {
+    let mut new_hmap = HashMap::new();
+    for (&num, &count) in hmap {
+        if num == 0 {
+            *new_hmap.entry(1).or_insert(0 as usize) += count;
+        } else if let Some((left, right)) = has_even_digits2(num) {
+            *new_hmap.entry(left).or_insert(0 as usize) += count;
+            *new_hmap.entry(right).or_insert(0 as usize) += count;
+        } else {
+            *new_hmap.entry(num * 2024).or_insert(0 as usize) += count;
+        }
+    }
+    return new_hmap;
+}
+
+#[allow(dead_code, unused_assignments)]
+fn iteration_one(data: &mut Vec<u128>) {
+    let mut handles;
+    //processed_data.iter().for_each(|num| print!("{num} "));
+    for ii in 0..75 {
+        let mut new_data = Vec::new();
+
+        // Split the vector into chunks
+        let chunk_size = (data.len() + 29) / 30;
+        let chunks: Vec<Vec<u128>> = data.chunks(chunk_size)
+            .map(|chunk| chunk.to_vec())
+            .collect();
+
+        handles = Vec::with_capacity(chunks.len());
+        for chunk in chunks.into_iter() {
+            //let chunk_data = chunk.to_vec();
+            let handle = thread::spawn(move || {
+                apply_blink(&chunk)
+            });
+            handles.push(handle);
+        }
+        for handle in handles {
+            match handle.join() {
+                Ok(chunk_ret) => new_data.extend(chunk_ret),
+                Err(e) => println!("error with line {}: {:?}", ii + 1, e),
+            }
+        }
+        data.clear();
+        *data = new_data;
+        //new_data.append(apply_blink(&processed_data));
+
+        //println!("");
+        //processed_data.iter().for_each(|num| print!("{num} "));
+        println!("answer line {} = {}", ii + 1, data.len());
+    }
+}
+
+#[allow(dead_code, unused_assignments)]
+fn process_data(data: &Vec<char>) -> Vec<u128>{
     let mut processed_data = Vec::new();
     let mut num = 0;
     for letter in data {
         if letter.is_numeric() {
-            num = num * 10 + letter.to_digit(10).unwrap() as u32;
+            num = num * 10 + letter.to_digit(10).unwrap() as u128;
         } else {
             processed_data.push(num);
             num = 0;
@@ -96,7 +132,7 @@ fn process_data(data: &Vec<char>) -> Vec<u32>{
 }
 
 #[allow(dead_code, unused_assignments)]
-fn apply_blink(line: &Vec<u32>) -> Vec<u32> {
+fn apply_blink(line: &Vec<u128>) -> Vec<u128> {
     let mut new_line = Vec::new();
     for &ii in line {
         if ii == 0 {
@@ -112,7 +148,7 @@ fn apply_blink(line: &Vec<u32>) -> Vec<u32> {
     return new_line;
 }
 
-fn has_even_digits2(num: u32) -> Option<(u32, u32)> {
+fn has_even_digits2(num: u128) -> Option<(u128, u128)> {
     let mut temp_num = num;
     let mut count = 0;
     while temp_num > 0 {
@@ -123,19 +159,19 @@ fn has_even_digits2(num: u32) -> Option<(u32, u32)> {
         return None;
     }
     return Some((
-        num / u32::pow(10, count / 2), 
-        num % u32::pow(10, count / 2)
+        num / u128::pow(10, count / 2), 
+        num % u128::pow(10, count / 2)
     ));
 }
 
 #[allow(dead_code, unused_assignments)]
-fn has_even_digits(num: u32) -> Option<(u32, u32)> {
+fn has_even_digits(num: u128) -> Option<(u128, u128)> {
     let chrs: Vec<char> = num.to_string().chars().collect();
     // println!("");
     // chrs.iter().for_each(|c| print!("{c} "));
     // println!("");
     if chrs.len() % 2 == 0 {
-        let mut ret: (u32, u32) = (0, 0);
+        let mut ret: (u128, u128) = (0, 0);
         for ii in 0..chrs.len() {
             // // I made something that splits it up l r l r l r ... for the num
             // let r_jj = chrs.len() - 1 - ii;
@@ -147,9 +183,9 @@ fn has_even_digits(num: u32) -> Option<(u32, u32)> {
             // }
 
             if ii > (chrs.len() - 1) / 2 {
-                ret.1 = ret.1 * 10 + chrs[ii].to_digit(10).unwrap() as u32;
+                ret.1 = ret.1 * 10 + chrs[ii].to_digit(10).unwrap() as u128;
             } else {
-                ret.0 = ret.0 * 10 + chrs[ii].to_digit(10).unwrap() as u32;
+                ret.0 = ret.0 * 10 + chrs[ii].to_digit(10).unwrap() as u128;
             }
         }
         return Some(ret);
