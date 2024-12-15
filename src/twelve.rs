@@ -5,7 +5,7 @@ use std::io::{self, BufRead};
 pub fn twelve() -> io::Result<()> {
     let mut data = Vec::new();
 
-    match read_data(String::from("data/12/test.txt"), &mut data) {
+    match read_data(String::from("data/12/data.txt"), &mut data) {
         Ok(_) =>  println!("Data read"),
         Err(ret) => return Err(ret),
     }
@@ -245,37 +245,20 @@ fn process_plot(plot: &Vec<(usize, usize)>) -> (u32, u32, u32) {
         println!("stuff not found");
         return (0, 0, 0);
     }
+
+    let mut checked = Vec::new();
     let mut prim = 0;
-    let s_pos = pos;
-    let mut c_dir = Dir::Right;
-    let mut adj = Adj::new();
-    adj.get_suroundings(&inv_plot, pos);
-    //adj.print_suroundings(Some(&c_dir));
-    let (mut r_ii, mut r_jj);
-    if let Some(ret) = adj.valid_dir(c_dir) {
-        let t_dir = c_dir.clone();
-        (c_dir, (r_ii, r_jj)) = ret;
-        pos.0 = (pos.0 as i8 + r_ii) as usize;
-        pos.1 = (pos.1 as i8 + r_jj) as usize;
-        if t_dir != c_dir {
-            prim += 1;
-        }
-    } else {
-        println!("found but starting dir not found");
-        return (0, 0, 0);
-    }
-
-    //print!("(ii,jj) ");
+    let mut area = 0;
     loop {
-        //print!("({},{}) ", pos.0, pos.1);
-        if pos == s_pos  && c_dir == Dir::Right {
-            break;
-        }
-
+        let s_pos = pos;
+        let mut c_dir = Dir::Right;
+        let mut adj = Adj::new();
         adj.get_suroundings(&inv_plot, pos);
         //adj.print_suroundings(Some(&c_dir));
-        if let Some(ret) = adj.valid_dir(c_dir) {
-            let t_dir = c_dir;
+        let (mut r_ii, mut r_jj);
+        if let Some(ret) = adj.valid_dir(&c_dir) {
+            checked.push((c_dir.clone(), pos.clone())); // this is for later checking if this has been done
+            let t_dir = c_dir.clone();
             (c_dir, (r_ii, r_jj)) = ret;
             pos.0 = (pos.0 as i8 + r_ii) as usize;
             pos.1 = (pos.1 as i8 + r_jj) as usize;
@@ -283,12 +266,66 @@ fn process_plot(plot: &Vec<(usize, usize)>) -> (u32, u32, u32) {
                 prim += 1;
             }
         } else {
-            println!("error at prim == {}", prim);
+            println!("found but starting dir not found");
             return (0, 0, 0);
+        }
+
+        //print!("(ii,jj) ");
+        let mut l_inx = 0;
+        loop {
+            //print!("({},{}) ", pos.0, pos.1);
+
+            adj.get_suroundings(&inv_plot, pos);
+            //adj.print_suroundings(Some(&c_dir));
+            if let Some(ret) = adj.valid_dir(&c_dir) {
+                let t_dir = c_dir;
+
+                checked.push((c_dir.clone(), pos.clone())); // this is for later checking if this has been done
+                (c_dir, (r_ii, r_jj)) = ret;
+                pos.0 = (pos.0 as i8 + r_ii) as usize;
+                pos.1 = (pos.1 as i8 + r_jj) as usize;
+                if t_dir != c_dir {
+                    prim += 1;
+                }
+            } else {
+                println!("error at prim == {}", prim);
+                return (0, 0, 0);
+            }
+            if pos == s_pos && c_dir == Dir::Right && l_inx != 0 {
+                break;
+            }
+            l_inx += 1;
+        }
+        checked.push((c_dir.clone(), pos.clone())); // this is for later checking if this has been done
+
+        let mut more_exist = false;
+        // we dont need 0 because we started with 0 and we need the inside of loops not outside
+        for ii in 1..inv_plot.len() {
+            for jj in 0..inv_plot[ii].len() {
+                if 
+                    inv_plot[ii][jj] && 
+                    !checked.contains(&(Dir::Right, (ii, jj))) && 
+                    !inv_plot[ii - 1][jj]
+                {
+                    more_exist = true;
+                    pos = (ii, jj);
+                    
+                    checked.push((Dir::Right, pos.clone())); // this is for later checking if this has been done
+                    println!("another one {ii},{jj} prim {prim}");
+                    break;
+                }
+            }
+            if more_exist {
+                break;
+            }
+        }
+        if !more_exist {
+            break;
         }
     }
     //println!("");
-    let area  = inv_plot.iter().flatten().filter(|&& val| val).count() as u32;
+
+    area = inv_plot.iter().flatten().filter(|&& val| val).count() as u32;
     let price = area * prim;
     return (area, prim, price);
 }
@@ -403,7 +440,7 @@ impl Adj {
     }
 
     /// returns Some(Dir, (ii, jj))
-    fn valid_dir(&self, c_dir: Dir) -> Option<(Dir, (i8, i8))> {
+    fn valid_dir(&self, c_dir: &Dir) -> Option<(Dir, (i8, i8))> {
         return match c_dir {
             Dir::Right => {
                 if 
