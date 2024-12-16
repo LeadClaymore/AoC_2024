@@ -13,7 +13,7 @@ pub fn eleven() -> io::Result<()> {
         Err(ret) => return Err(ret),
     }
     //print_data(&data);
-    let mut processed_data = process_data(&data[0]);
+    let processed_data = process_data(&data[0]);
     iteration_two(&processed_data);
     
     Ok(())
@@ -57,7 +57,7 @@ fn iteration_two(data: &Vec<u128>) {
 
     for blk in 1..=75 {
         hmap = apply_blink_v2(&hmap);
-        let c_nums = hmap.iter().map(|(i, j)| j).sum::<usize>();
+        let c_nums = hmap.iter().map(|(_i, j)| j).sum::<usize>();
         println!("answer line {} = int: {}, c_nums: {}", blk, hmap.len(), c_nums);
     }
 }
