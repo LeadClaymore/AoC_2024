@@ -1,6 +1,8 @@
 use std::fs::File;
 use std::io::{self, BufRead};
-use ndarray::Array2;
+//use ndarray::Array2;
+use ndarray::prelude::*;
+use ndarray_linalg::*;
 //use serde_scan;
 
 #[allow(dead_code, unused_assignments)]
@@ -154,5 +156,15 @@ fn find_lowest(a: &Array2<i64>, b: &Array2<i64>, c: &Array2<i64>) -> (i64, i64) 
     // }
 
     // return ret;
+}
+
+fn find_lowest_2(a: &Array2<i64>, b: &Array2<i64>, c: &Array2<i64>) -> (i64, i64) {
+    let a_matrix: Array2<i64> = array![[a[[0, 0]], b[[0, 0]]],[a[[1, 0]], b[[1, 0]]]];
+    let l_vector: Array1<i64> = array![c[[0, 0]], c[[1, 0]]];
+    // solve is meant to work
+    // I even found the docs.rs on it
+    // https://docs.rs/ndarray-linalg/latest/ndarray_linalg/solve/
+    let solution = a_matrix.solve_into(l_vector).unwrap();
+    return (0,0);
 }
 //end
