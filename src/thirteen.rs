@@ -1,15 +1,13 @@
 use std::fs::File;
 use std::io::{self, BufRead};
 use ndarray::Array2;
-use ndarray::Array;
-use serde_scan;
-use serde_scan::scan;
+//use serde_scan;
 
 #[allow(dead_code, unused_assignments)]
 pub fn thirteen() -> io::Result<()> {
     let mut data = Vec::new();
 
-    match read_data_2(String::from("data/13/test.txt")) {
+    match read_data_2(String::from("data/13/data.txt")) {
         Ok(ret) => data = ret,
         Err(ret) => return Err(ret),
     }
@@ -20,7 +18,7 @@ pub fn thirteen() -> io::Result<()> {
         //println!("[{}, {}] + [{}, {}] = [{}, {}]: ", a[[0, 0]], a[[1, 0]], b[[0, 0]], b[[1, 0]], c[[0, 0]], c[[1, 0]]);
         let low = find_lowest(&a, &b, &c);
         //println!("({}, {})", low.0, low.1);
-        if low != (i64::MAX, i64::MAX) {
+        if low != (i64::MAX, i64::MAX) && low.0 >= 0 && low.1 >= 0 {
             tokens += 3 * low.0 + low.1;
         }
     }
@@ -100,37 +98,49 @@ fn read_data_2(file: String) -> io::Result<Vec<(Array2<i64>, Array2<i64>, Array2
     return Ok(ret);
 }
 
-#[allow(dead_code, unused_assignments)]
+#[allow(dead_code, unused_assignments, unused_variables)]
 fn find_lowest(a: &Array2<i64>, b: &Array2<i64>, c: &Array2<i64>) -> (i64, i64) {
-    let a_but = 3;
-    let b_but = 1;
-    let c_offset: i64 = 10000000000000;
-    // find the minimum ittetations of the lowest number to reach the total
-    let mi = if a[[0, 0]] > b[[0, 0]] {
-        (c_offset + c[[0, 0]]) / b[[0, 0]] + 1
-    } else {
-        (c_offset + c[[0, 0]]) / a[[0, 0]] + 1
-    };
-    let mj = if a[[1, 0]] > b[[1, 0]] {
-        (c_offset + c[[1, 0]]) / b[[1, 0]]
-    } else {
-        (c_offset + c[[1, 0]]) / a[[1, 0]]
-    };
-
-    //print!("{mi} {mj}: ");
-    let mut ret = (i64::MAX, i64::MAX);
-    for ii in 0..=mi {
-        for jj in 0..=mj {
-            if a * ii + b * jj == c {
-                //print!("[{ii}][{jj}], ");
-                if ret.0 == i64::MAX || a_but * ii + b_but * jj < ret.0 + ret.1 {
-                    ret.0 = ii;
-                    ret.1 = jj;
-                }
-            }
+    // let a_but = 3;
+    // let b_but = 1;
+    let co: i64 = 10000000000000;
+    let det = a[[0, 0]] * b[[1, 0]] - a[[1, 0]] * b[[0, 0]];
+    if det != 0 {
+        let ret = (
+            ((co + c[[0, 0]]) * b[[1, 0]] - (co + c[[1, 0]]) * b[[0, 0]]) / det,
+            (0 - (co + c[[0, 0]]) * a[[1, 0]] + (co + c[[1, 0]]) * a[[0, 0]]) / det
+        );
+        if (co + c[[0, 0]]) == b[[0, 0]] * ret.1 + a[[0, 0]] * ret.0 {
+            return ret;
         }
     }
+    return (i64::MAX, i64::MAX);
 
-    return ret;
+    // // find the minimum ittetations of the lowest number to reach the total
+    // let mi = if a[[0, 0]] > b[[0, 0]] {
+    //     (c_offset + c[[0, 0]]) / b[[0, 0]] + 1
+    // } else {
+    //     (c_offset + c[[0, 0]]) / a[[0, 0]] + 1
+    // };
+    // let mj = if a[[1, 0]] > b[[1, 0]] {
+    //     (c_offset + c[[1, 0]]) / b[[1, 0]]
+    // } else {
+    //     (c_offset + c[[1, 0]]) / a[[1, 0]]
+    // };
+
+    // //print!("{mi} {mj}: ");
+    // let mut ret = (i64::MAX, i64::MAX);
+    // for ii in 0..=mi {
+    //     for jj in 0..=mj {
+    //         if a * ii + b * jj == c {
+    //             //print!("[{ii}][{jj}], ");
+    //             if ret.0 == i64::MAX || a_but * ii + b_but * jj < ret.0 + ret.1 {
+    //                 ret.0 = ii;
+    //                 ret.1 = jj;
+    //             }
+    //         }
+    //     }
+    // }
+
+    // return ret;
 }
 //end
