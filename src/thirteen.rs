@@ -17,7 +17,7 @@ pub fn thirteen() -> io::Result<()> {
         //println!("a: {}\nb: {}\nt: {}", a, b, c);
         //println!("[{}, {}] + [{}, {}] = [{}, {}]: ", a[[0, 0]], a[[1, 0]], b[[0, 0]], b[[1, 0]], c[[0, 0]], c[[1, 0]]);
         let low = find_lowest(&a, &b, &c);
-        //println!("({}, {})", low.0, low.1);
+        println!("({}, {})", low.0, low.1);
         if low != (i64::MAX, i64::MAX) && low.0 >= 0 && low.1 >= 0 {
             tokens += 3 * low.0 + low.1;
         }
@@ -63,7 +63,7 @@ fn read_data_2(file: String) -> io::Result<Vec<(Array2<i64>, Array2<i64>, Array2
         } else {
             let mut v: [i64; 2] = [0, 0];
             let mut f_num_pushed = false;
-            let mut t_num = 0;
+            let mut t_num: i64 = 0;
             for ii in line.chars() {
                 // all this does is look for numbers, 
                 // if its a number, add it to a total, 
@@ -72,15 +72,23 @@ fn read_data_2(file: String) -> io::Result<Vec<(Array2<i64>, Array2<i64>, Array2
                 // basicly it takes any string of chars, pulls 2 numbers out of it and puts them in v
 
                 if let Some(num) = ii.to_digit(10) {
-                    t_num = t_num * 10 + num;
+                    t_num = t_num * 10 + num as i64;
                     //println!("was dig {num}");
                 } else {
                     if t_num != 0 && !f_num_pushed {
+                        if inx == 2 {
+                            //for p2
+                            //t_num += 10000000000000;
+                        }
                         v[0] = t_num as i64;
                         f_num_pushed = true;
                         t_num = 0;
                     }
                 }
+            }
+            if inx == 2 {
+                // for p2
+                //t_num += 10000000000000;
             }
             v[1] = t_num as i64;
 
@@ -98,11 +106,15 @@ fn read_data_2(file: String) -> io::Result<Vec<(Array2<i64>, Array2<i64>, Array2
     return Ok(ret);
 }
 
+// TODO
+// I believe my problem is one that the last iteration would have fixed, 
+// where it does not take into account that a presses are more expensive then b presses, 
+// and my current linear algebrea does not take that into account
 #[allow(dead_code, unused_assignments, unused_variables)]
 fn find_lowest(a: &Array2<i64>, b: &Array2<i64>, c: &Array2<i64>) -> (i64, i64) {
-    // let a_but = 3;
-    // let b_but = 1;
-    let co: i64 = 10000000000000;
+    let ao = 3;
+    let bo = 1;
+    let co: i64 = 0; //10000000000000;
     let det = a[[0, 0]] * b[[1, 0]] - a[[1, 0]] * b[[0, 0]];
     if det != 0 {
         let ret = (
