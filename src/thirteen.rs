@@ -34,7 +34,7 @@ pub fn thirteen() -> io::Result<()> {
     Ok(())
 }
 
-#[allow(dead_code, unused_assignments)]
+#[allow(dead_code, unused_assignments, unused_mut)]
 fn read_data(file: String, data: &mut Vec<Vec<char>>) -> io::Result<()> {
     let reader = io::BufReader::new(File::open(file)?);
 
