@@ -30,7 +30,7 @@ pub fn fourteen() -> io::Result<()> {
     let mut ot_quads = Vec::new();
     
     let mut t_quad = [0; 4];
-    for sec in 1..=100 {
+    for sec in 1..=i32::MAX {
         safty_area.clear();
         for _ii in 0..gs.0 {
             let mut sa_line = Vec::new();
@@ -70,7 +70,10 @@ pub fn fourteen() -> io::Result<()> {
                 }
             }
         }
-        //print_sa(&safty_area);
+        if is_unique(&safty_area) {
+            print_sa(&safty_area);
+            break;
+        }
 
         let t_saftey = c_quad[0] * c_quad[1] * c_quad[2] * c_quad[3];
         println!("sec {sec} quad {} {} {} {} = {}", c_quad[0], c_quad[1], c_quad[2], c_quad[3], t_saftey);
@@ -158,6 +161,7 @@ fn read_data_2(file: String) -> io::Result<Vec<[i32; 6]>> {
 }
 
 /// bound and ret are both going to be (jj, ii)
+#[allow(dead_code, unused_assignments)]
 fn apply_movement(line: &mut [i32; 6], jj_m: i32, ii_m: i32) -> (i32, i32) {
     let mut ret = (line[4] + line[2], line[5] + line[3]);
     //print!("V{},{}::P{},{}::({},{})::[{},{}] ", line[2], line[3], line[4], line[5], ret.0, ret.1, ii_m, jj_m);
@@ -184,6 +188,7 @@ fn apply_movement(line: &mut [i32; 6], jj_m: i32, ii_m: i32) -> (i32, i32) {
 }
 
 /// prints the locations
+#[allow(dead_code, unused_assignments)]
 fn print_sa(safty_area: &Vec<Vec<i32>>) {
     //print saftey stuff
     for ii in 0..safty_area.len() {
@@ -202,5 +207,17 @@ fn print_sa(safty_area: &Vec<Vec<i32>>) {
         }
         println!("");
     }
+}
+
+#[allow(dead_code, unused_assignments)]
+fn is_unique(data: &Vec<Vec<i32>>) -> bool {
+    for ii in 0..data.len() {
+        for jj in 0..data[ii].len() {
+            if data[ii][jj] != 0 && data[ii][jj] != 1 {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 //end
