@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::{self, BufRead};
 
+#[derive(Clone, Copy)]
 enum Dir {
     Up,
     Down,
@@ -12,7 +13,7 @@ enum Dir {
 impl Dir {
     // ima try a new thing where I just subtract both by 1 so I can have -1's without conversions
     /// returns (ii, jj)
-    fn get_cord_changes(&self) -> (usize, usize) {
+    fn c_cords(&self) -> (usize, usize) {
         return match self {
             Dir::Down => (0, 1),
             Dir::Up => (2, 1),
@@ -33,10 +34,24 @@ pub fn fifteen() -> io::Result<()> {
     };
     
     let mut pos = s_pos.clone();
+    print_maze(&maze);
     for dd in 0..moves.len() {
-        if let Some((ni, nj)) = in_bound(pos.0, pos.1, maze.len(), maze[0].len(), moves[dd].get_cord_changes()) {
-            //TODO need to 
+        //TODO need to take the position its moving to and check if there is 
+        //1 imoveable blocks,
+        //2 moveable blocks with clear spaces to move to (contiue checking in the same way)
+        //3 moveable blocks with blockage in the way (aka theres a wall or series of blocks leading to a wall)
+        // I know how I could do this with recursion, however I dont want to send a new reference to each, so ima learn a new way
+        // if the block cant be moved then stop the command
+        // otherwise apply the movement
+
+        let mut moved = false;
+        (moved, maze) = try_to_move(maze, pos.0, pos.1, moves[dd]);
+        if moved {
+            if let Some(n_pos) = find_pos(&maze) {
+                pos = n_pos;
+            }
         }
+        print_maze(&maze);
     }
 
     Ok(())
@@ -50,10 +65,10 @@ fn read_data_2(file: String) -> io::Result<(Vec<Vec<char>>, Vec<Dir>, (usize, us
     let mut s_pos = (0, 0);
 
     let mut line_inx = 0;
+    let mut maze_over = false;
     let reader = io::BufReader::new(File::open(file)?);
     for line_res in reader.lines() {
         let line = line_res?;
-        let mut maze_over = false;
         if line.trim().is_empty() {
             maze_over = true;
             continue;
@@ -98,6 +113,53 @@ fn in_bound(ii: usize, jj: usize, mi: usize, mj: usize, dif: (usize, usize)) -> 
         return None;
     } else {
         return Some((ii + dif.0 - 1, jj + dif.1 - 1));
+    }
+}
+
+#[allow(dead_code, unused_assignments)]
+fn try_to_move(mut maze: Vec<Vec<char>>, ii: usize, jj: usize, dd: Dir) -> (bool, Vec<Vec<char>>) {
+    if let Some((ni, nj)) = in_bound(ii, jj, maze.len(), maze[0].len(), dd.c_cords()) {
+        if maze[ni][nj] == 'O' {
+            let (ret, mut maze) = try_to_move(maze, ni, nj, dd);
+            if ret == true {
+                maze[ni][nj] = maze[ii][jj];
+                maze[ii][jj] = '.';
+                return (true, maze);
+            }
+            return (false, maze);
+        } else if maze[ni][nj] == '.' {
+            maze[ni][nj] = maze[ii][jj];
+            maze[ii][jj] = '.';
+            return (true, maze);
+        } else {
+            return (false, maze);
+        }
+    } else {
+        return (false, maze);
+    }
+}
+
+#[allow(dead_code, unused_assignments)]
+fn find_pos(maze: &Vec<Vec<char>>) -> Option<(usize, usize)> {
+    for ii in 0..maze.len() {
+        for jj in 0..maze.len() {
+            if maze[ii][jj] == '@' {
+                return Some((ii, jj));
+            }
+        }
+    }
+    return None;
+}
+
+
+#[allow(dead_code, unused_assignments)]
+fn print_maze(maze: &Vec<Vec<char>>) {
+    println!("---------------------------------------------------------");
+    for ii in 0..maze.len() {
+        for jj in 0..maze[ii].len() {
+            print!("{}", maze[ii][jj]);
+        }
+        println!("");
     }
 }
 //end
