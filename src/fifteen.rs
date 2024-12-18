@@ -15,17 +15,26 @@ impl Dir {
     /// returns (ii, jj)
     fn c_cords(&self) -> (usize, usize) {
         return match self {
-            Dir::Down => (0, 1),
-            Dir::Up => (2, 1),
+            Dir::Down => (2, 1),
+            Dir::Up => (0, 1),
             Dir::Right => (1, 2),
             Dir::Left => (1, 0),
+        };
+    }
+
+    fn p_dir(&self) -> String {
+        return match self {
+            Dir::Down => "Down".to_string(),
+            Dir::Up => "Up".to_string(),
+            Dir::Right => "Right".to_string(),
+            Dir::Left => "Left".to_string(),
         };
     }
 }
 
 #[allow(dead_code, unused_assignments)]
 pub fn fifteen() -> io::Result<()> {
-    let (mut maze, moves, s_pos) = match read_data_2(String::from("data/15/test.txt")) {
+    let (mut maze, moves, s_pos) = match read_data_2(String::from("data/15/data.txt")) {
         Ok(stuff) =>  {
             println!("Data read");
             stuff
@@ -35,15 +44,16 @@ pub fn fifteen() -> io::Result<()> {
     
     let mut pos = s_pos.clone();
     print_maze(&maze);
-    for dd in 0..moves.len() {
-        //TODO need to take the position its moving to and check if there is 
-        //1 imoveable blocks,
-        //2 moveable blocks with clear spaces to move to (contiue checking in the same way)
-        //3 moveable blocks with blockage in the way (aka theres a wall or series of blocks leading to a wall)
-        // I know how I could do this with recursion, however I dont want to send a new reference to each, so ima learn a new way
-        // if the block cant be moved then stop the command
-        // otherwise apply the movement
+    //need to take the position its moving to and check if there is 
+    //1 imoveable blocks,
+    //2 moveable blocks with clear spaces to move to (contiue checking in the same way)
+    //3 moveable blocks with blockage in the way (aka theres a wall or series of blocks leading to a wall)
+    // I know how I could do this with recursion, however I dont want to send a new reference to each, so ima learn a new way
+    // if the block cant be moved then stop the command
+    // otherwise apply the movement
 
+    for dd in 0..moves.len() {
+        //println!("Dir #{} is: {}", dd + 1, moves[dd].p_dir());
         let mut moved = false;
         (moved, maze) = try_to_move(maze, pos.0, pos.1, moves[dd]);
         if moved {
@@ -51,9 +61,19 @@ pub fn fifteen() -> io::Result<()> {
                 pos = n_pos;
             }
         }
-        print_maze(&maze);
+        //print_maze(&maze);
     }
-
+    print_maze(&maze);
+    let mut total = 0;
+    for ii in 0..maze.len() {
+        for jj in 0..maze.len() {
+            if maze[ii][jj] == 'O' {
+                total += 100 * ii + jj;
+            }
+        }
+    }
+    println!("{total} = total");
+    //println!("pos = ({}, {}), GPS = {}", pos.0, pos.1, 100 * pos.0 + pos.1);
     Ok(())
 }
 
@@ -80,7 +100,7 @@ fn read_data_2(file: String) -> io::Result<(Vec<Vec<char>>, Vec<Dir>, (usize, us
                     ret_d.push(Dir::Right);
                 } else if c == '<' {
                     ret_d.push(Dir::Left);
-                } else if c == 'V' {
+                } else if c == 'v' {
                     ret_d.push(Dir::Down);
                 }
             }
