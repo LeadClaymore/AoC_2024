@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::{self, BufRead};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 enum Dir {
     Up,
     Down,
@@ -30,6 +30,16 @@ impl Dir {
             Dir::Left => "Left".to_string(),
         };
     }
+
+    /// returns if its vertical or horizontal
+    fn vert(&self) -> bool {
+        return match self {
+            Dir::Down => true,
+            Dir::Up => true,
+            Dir::Right => false,
+            Dir::Left => false,
+        };
+    }
 }
 
 #[allow(dead_code, unused_assignments)]
@@ -54,17 +64,53 @@ pub fn fifteen() -> io::Result<()> {
     // otherwise apply the movement
 
     for dd in 0..moves.len() {
-        //println!("Dir #{} is: {}", dd + 1, moves[dd].p_dir());
-        let mut moved = false;
-        (moved, maze) = try_to_move(maze, pos.0, pos.1, moves[dd]);
-        if moved {
-            if let Some(n_pos) = find_pos(&maze) {
-                pos = n_pos;
-            }
+        if let Some(n_pos) = find_pos(&maze) {
+            pos = n_pos;
+        } else {
+            println!("Dir #{dd}, cound not find @");
+            break;
         }
-        //print_maze(&maze);
+        println!("Pos: ({},{}), Dir #{} is: {}", pos.0, pos.1, dd + 1, moves[dd].p_dir());
+        if moves[dd].vert() {
+            let to_move;
+            (to_move, maze) = try_to_move_p2(maze, pos.0 + moves[dd].c_cords().0 - 1, pos.1 + moves[dd].c_cords().1 - 1, moves[dd]);
+            if let Some(spots) = to_move {
+
+                //todo with this new range, iterate over and apply moves
+                if moves[dd] == Dir::Up {
+                    for ii in 0..maze.len() {
+                        for jj in 0..maze[ii].len() {
+                            if spots.contains(&(ii, jj)) {
+                                let t = maze[ii - 1][jj];
+                                maze[ii - 1][jj] = maze[ii][jj];
+                                maze[ii][jj] = t;
+                            }
+                        }
+                    }
+                    maze[pos.0 - 1][pos.1] = '@';
+                    maze[pos.0][pos.1] = '.';
+                } else {
+                    for rri in 0..maze.len() {
+                        let ii = maze.len() - 1 - rri;
+                        for jj in 0..maze[ii].len() {
+                            if spots.contains(&(ii, jj)) {
+                                let t = maze[ii + 1][jj];
+                                maze[ii + 1][jj] = maze[ii][jj];
+                                maze[ii][jj] = t;
+                            }
+                        }
+                    }
+                    maze[pos.0 + 1][pos.1] = '@';
+                    maze[pos.0][pos.1] = '.';
+                }
+            }
+        } else {
+            (_, maze) = try_to_move(maze, pos.0, pos.1, moves[dd]);
+        }
+        //println!("Move: {dd}, {}", moves[dd].p_dir());
+        print_maze(&maze);
     }
-    print_maze(&maze);
+    //print_maze(&maze);
     let mut total = 0;
     for ii in 0..maze.len() {
         for jj in 0..maze.len() {
@@ -234,7 +280,7 @@ fn try_to_move_p2(maze: Vec<Vec<char>>, ii: usize, jj: usize, dd: Dir) -> (Optio
 #[allow(dead_code, unused_assignments)]
 fn find_pos(maze: &Vec<Vec<char>>) -> Option<(usize, usize)> {
     for ii in 0..maze.len() {
-        for jj in 0..maze.len() {
+        for jj in 0..maze[ii].len() {
             if maze[ii][jj] == '@' {
                 return Some((ii, jj));
             }
@@ -242,7 +288,6 @@ fn find_pos(maze: &Vec<Vec<char>>) -> Option<(usize, usize)> {
     }
     return None;
 }
-
 
 #[allow(dead_code, unused_assignments)]
 fn print_maze(maze: &Vec<Vec<char>>) {
