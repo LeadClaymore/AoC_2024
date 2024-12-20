@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::fs::File;
 use std::io::{self, BufRead};
 
@@ -44,7 +45,7 @@ impl Dir {
 
 #[allow(dead_code, unused_assignments)]
 pub fn fifteen() -> io::Result<()> {
-    let (mut maze, moves, s_pos) = match read_data_2(String::from("data/15/test.txt")) {
+    let (mut maze, moves, s_pos) = match read_data_2(String::from("data/15/data.txt")) {
         Ok(stuff) =>  {
             println!("Data read");
             stuff
@@ -70,10 +71,10 @@ pub fn fifteen() -> io::Result<()> {
             println!("Dir #{dd}, cound not find @");
             break;
         }
-        println!("Pos: ({},{}), Dir #{} is: {}", pos.0, pos.1, dd + 1, moves[dd].p_dir());
+        //println!("Pos: ({},{}), Dir #{} is: {}", pos.0, pos.1, dd + 1, moves[dd].p_dir());
         if moves[dd].vert() {
-            let to_move;
-            (to_move, maze) = try_to_move_p2(maze, pos.0 + moves[dd].c_cords().0 - 1, pos.1 + moves[dd].c_cords().1 - 1, moves[dd]);
+            let mut to_move = None;
+            (to_move, maze) = try_to_move_p2(maze, pos.0 + moves[dd].c_cords().0 - 1, pos.1 + moves[dd].c_cords().1 - 1, moves[dd], false);
             if let Some(spots) = to_move {
 
                 //todo with this new range, iterate over and apply moves
@@ -108,16 +109,17 @@ pub fn fifteen() -> io::Result<()> {
             (_, maze) = try_to_move(maze, pos.0, pos.1, moves[dd]);
         }
         //println!("Move: {dd}, {}", moves[dd].p_dir());
-        print_maze(&maze);
+        //print_maze(&maze);
     }
     //print_maze(&maze);
     let mut total = 0;
     for ii in 0..maze.len() {
-        for jj in 0..maze.len() {
+        for jj in 0..maze[ii].len() {
             if 
                 maze[ii][jj] == 'O' ||
-                maze[ii][jj] == '[' 
+                maze[ii][jj] == '['
             {
+                //print!("({ii}, {jj}) ");
                 total += 100 * ii + jj;
             }
         }
@@ -227,7 +229,7 @@ fn try_to_move(mut maze: Vec<Vec<char>>, ii: usize, jj: usize, dd: Dir) -> (bool
     }
 }
 
-//TODO plan
+// plan
 // I dont need the in bound check so ima just scrap it
 // The only diffrence is with the moving block thing
 // horizontaly I can reuse try_to_move() so ima foucus on vertical moves
@@ -235,21 +237,18 @@ fn try_to_move(mut maze: Vec<Vec<char>>, ii: usize, jj: usize, dd: Dir) -> (bool
 // it will create a list of moves, by branching out through each possible effect of each move
 // and if the entire move is valid, elsewhere it will apply the move 
 
-// TODO the move needs to happen opposite of the dirrection of the push so it does not delete stuff
-// aka if we push up then the effects have to happen top down
-
 /// Important: this takes pos of next move not cur move
 /// Will return maze and either 
 /// None: push is bad. 
 /// Some(Vec.empty()): edge '.' space but push is still good.
 /// Some(Vec.not_empty()) contents to be move also move is good.
 #[allow(dead_code, unused_assignments)]
-fn try_to_move_p2(maze: Vec<Vec<char>>, ii: usize, jj: usize, dd: Dir) -> (Option<Vec<(usize, usize)>>, Vec<Vec<char>>) {
+fn try_to_move_p2(maze: Vec<Vec<char>>, ii: usize, jj: usize, dd: Dir, o_half: bool) -> (Option<HashSet<(usize, usize)>>, Vec<Vec<char>>) {//TODO change to returning a hashmap instead of Vec<(usize, usize)>
     let (nni, nnj);
-
+    //println!("{ii} {jj} {}", dd.p_dir());
     // unless block we dont need to calculate anything
     if maze[ii][jj] == '.' {
-        return (Some(Vec::new()), maze);
+        return (Some(HashSet::new()), maze);
     } else if maze[ii][jj] == '#' {
         return (None, maze);
     } else if maze[ii][jj] == '[' {
@@ -263,13 +262,16 @@ fn try_to_move_p2(maze: Vec<Vec<char>>, ii: usize, jj: usize, dd: Dir) -> (Optio
     }
     // if it makes it here then its a block, so we try to recurse with both halfs
     let dif = dd.c_cords();
-    let (tomv_1, maze) = try_to_move_p2(maze, ii + dif.0, jj + dif.1, dd);
-    let (tomv_2, maze) = try_to_move_p2(maze, nni + dif.0, nnj + dif.1, dd);
+    let (tomv_1, maze) = try_to_move_p2(maze, ii + dif.0 - 1, jj + dif.1 - 1, dd, false);
+    let (tomv_2, maze) = try_to_move_p2(maze, nni + dif.0 - 1, nnj + dif.1 - 1, dd, false);
 
     // wild if let to get both returns
     if let (Some(mut ret_1), Some(mut ret_2)) = (tomv_1, tomv_2) {
         // combine and return all the changes that must be made
-        ret_1.append(&mut ret_2);
+        print!("({},{})", ret_1.len(), ret_2.len());
+        ret_1.extend(&mut ret_2.into_iter());
+        ret_1.insert((ii, jj));
+        ret_1.insert((nni, nnj));
         return (Some(ret_1), maze);
     } else {
         // if one of the changes wont work, none of them will
