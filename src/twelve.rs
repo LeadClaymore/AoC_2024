@@ -53,7 +53,7 @@ fn calc_data(data: &Vec<Vec<char>>) {
             if used_data[ii][jj] != '.' {
                 let temp_c = used_data[ii][jj].clone();
                 if let Some(plot) = calc_plot(&mut used_data, (ii, jj), temp_c) {
-                    //TODO calc plot is finding stuff but its not getting to process_plot
+                    // calc plot is finding stuff but its not getting to process_plot
                     let (area, prim, price) = process_plot(&plot);
                     println!("plot {ii}, {jj} has area: {area}, prim: {prim} as {temp_c}");
                     total_area += area;
@@ -331,7 +331,7 @@ fn process_plot(plot: &Vec<(usize, usize)>) -> (u32, u32, u32) {
     return (area, prim, price);
 }
 
-//TODO ok so I have a problem that objects with holes in them, see below, the algorithim does not get the fences within.
+// ok so I have a problem that objects with holes in them, see below, the algorithim does not get the fences within.
 // xxx
 // xox
 // xxx

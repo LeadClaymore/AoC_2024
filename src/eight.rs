@@ -92,7 +92,7 @@ fn find_anti_node(data: &Vec<Vec<char>>, anti_nodes: &mut Vec<Vec<Option<char>>>
                 // ii then jj
                 let n_anti_change = ((ii as i32 - n_ii as i32), (jj as i32 - n_jj as i32));
                 let mut c_anti = (ii as i32 + n_anti_change.0, jj as i32 + n_anti_change.1);
-                //TODO instead of getting the first antinode you need to take the distance (ii - n_ii) and while its on the map put another antinode on it
+                // instead of getting the first antinode you need to take the distance (ii - n_ii) and while its on the map put another antinode on it
                 while within(
                     c_anti.0, 
                     c_anti.1, 

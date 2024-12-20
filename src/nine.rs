@@ -156,7 +156,6 @@ fn compress_blocks_two(blocks: &mut Vec<Option<u32>>) {
 // IVE SPENT FAR TOO LONG ON THIS STUPID INTERPERTATION OF A COMPRESSION SYSTEM
 // I SPENT 120 LINES ON P1 AND AT THIS POINT 230 ON THIS NEEDY CRAP
 
-// TODO:
 // so make a compress_blocks_four that uses the learned aspects of 3 and 2 that will 
 // go back to finding the block and trying to squeeze it into a space 
 // but this time simply try each block once rather then again

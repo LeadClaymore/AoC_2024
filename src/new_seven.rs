@@ -169,7 +169,7 @@ fn calc_line(line: &mut Vec<i64>, result: i64, operands: &mut Vec<Operator>) -> 
     loop {
         if n_line.len() <= 1 {
             if n_line.len() == 0 {
-                //TODO error
+                //error
                 return false;
             }
             if n_line[0] == result {

@@ -242,8 +242,9 @@ fn try_to_move(mut maze: Vec<Vec<char>>, ii: usize, jj: usize, dd: Dir) -> (bool
 /// None: push is bad. 
 /// Some(Vec.empty()): edge '.' space but push is still good.
 /// Some(Vec.not_empty()) contents to be move also move is good.
+/// never ended up using o_half, but it was going to be for determining if the call came from nni nnj
 #[allow(dead_code, unused_assignments)]
-fn try_to_move_p2(maze: Vec<Vec<char>>, ii: usize, jj: usize, dd: Dir, o_half: bool) -> (Option<HashSet<(usize, usize)>>, Vec<Vec<char>>) {//TODO change to returning a hashmap instead of Vec<(usize, usize)>
+fn try_to_move_p2(maze: Vec<Vec<char>>, ii: usize, jj: usize, dd: Dir, _o_half: bool) -> (Option<HashSet<(usize, usize)>>, Vec<Vec<char>>) {// change to returning a hashmap instead of Vec<(usize, usize)>
     let (nni, nnj);
     //println!("{ii} {jj} {}", dd.p_dir());
     // unless block we dont need to calculate anything
@@ -266,7 +267,7 @@ fn try_to_move_p2(maze: Vec<Vec<char>>, ii: usize, jj: usize, dd: Dir, o_half: b
     let (tomv_2, maze) = try_to_move_p2(maze, nni + dif.0 - 1, nnj + dif.1 - 1, dd, false);
 
     // wild if let to get both returns
-    if let (Some(mut ret_1), Some(mut ret_2)) = (tomv_1, tomv_2) {
+    if let (Some(mut ret_1), Some(ret_2)) = (tomv_1, tomv_2) {
         // combine and return all the changes that must be made
         print!("({},{})", ret_1.len(), ret_2.len());
         ret_1.extend(&mut ret_2.into_iter());

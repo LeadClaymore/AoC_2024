@@ -94,7 +94,7 @@ fn find_trails(processed_data: &Vec<Vec<u32>>) {
     println!("answer = {}, answer2 = {}", sum, sum2);
 }
 
-//TODO currently you find each way you can reach 9 but you need to find each 9 you can reach
+// currently you find each way you can reach 9 but you need to find each 9 you can reach
 // so instead of returning how many 9's you reach via u32 instead return a vec of (usize, usize)
 // this vector will be each 9 reached and apon returning it will append the vec with all returns and return that
 // at the start of the recursion you take the vec and count the unique position

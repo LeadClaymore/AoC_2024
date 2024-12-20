@@ -108,7 +108,6 @@ fn read_data_2(file: String) -> io::Result<Vec<(Array2<i128>, Array2<i128>, Arra
     return Ok(ret);
 }
 
-// TODO
 // I believe my problem is one that the last iteration would have fixed, 
 // where it does not take into account that a presses are more expensive then b presses, 
 // and my current linear algebrea does not take that into account
