@@ -197,7 +197,7 @@ fn traverse_maze(maze: &Vec<Vec<char>>, pp: (usize, usize), eep: &(usize, usize)
     let mut c_ret = HashSet::new();
     let mut found = false;
     for n_dir in Dir::all() {
-        if let Some(mut r_been) = traverse_maze(maze, n_dir.c_cords_2(&pp), eep, n_dir, been) {
+        if let Some(mut r_been) = traverse_maze(maze, n_dir.c_cords_2(&pp), eep, n_dir, &mut been.clone()) {
             found = true;
             if dd == n_dir {
                 // this needs to only move to reach
