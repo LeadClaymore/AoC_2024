@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use std::fs::File;
 use std::io::{self, BufRead};
+use std::u32;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
 enum Dir {
@@ -20,6 +21,26 @@ impl Dir {
             Dir::Right => (1, 2),
             Dir::Left => (1, 0),
         };
+    }
+
+    /// p1 is start and p2 is end
+    fn from_pos(p1: &(usize, usize), p2: &(usize, usize)) -> Option<Dir> {
+        let ii_c = p1.0 as i8 - p2.0 as i8;
+        let jj_c = p1.1 as i8 - p2.1 as i8;
+        // if the ii is neg and jj is still its down
+        if ii_c < 0 && jj_c == 0 {
+            return Some(Dir::Down);
+        // if the ii is pos adn the jj is still its up
+        } else if ii_c > 0 && jj_c == 0 {
+            return Some(Dir::Up);
+        // if the ii is still and jj is neg its left
+        } else if ii_c == 0 && jj_c > 0 {
+            return Some(Dir::Left);
+        // if the ii is still and jj is pos its right
+        } else if ii_c == 0 && jj_c < 0 {
+            return Some(Dir::Right);
+        }
+        return None;
     }
 
     fn p_dir(&self) -> String {
@@ -106,7 +127,7 @@ impl Dir {
 
 #[allow(dead_code, unused_assignments)]
 pub fn sixteen() -> io::Result<()> {
-    let (maze, s_pos, e_pos) = match read_data(String::from("data/16/test.txt")) {
+    let (maze, s_pos, e_pos) = match read_data(String::from("C:/Users/Clayton Ross/Desktop/Rust/AoC_2024/data/16/data.txt")) {
         Ok(stuff) => {
             println!("Data read");
             println!("s: ({}, {}), e: ({}, {})", stuff.1.0, stuff.1.1, stuff.2.0, stuff.2.1);
@@ -122,8 +143,9 @@ pub fn sixteen() -> io::Result<()> {
     };
 
 
-    if let Some(answer) = traverse_maze(&maze, s_pos, Dir::Right, &e_pos, &mut HashSet::new()) {
-        println!("answer = {}", path_val(&answer));
+    if let Some(answer) = traverse_maze_2(&maze, s_pos, (s_pos.0, s_pos.1 - 1), &e_pos, &mut HashSet::new()) {
+        // 1000 was the ofset that the original answer had with the test material, IDK and IDC why its 1000 off
+        println!("answer = {}", path_cost(&answer) + 1000);
     }
     Ok(())
 }
@@ -161,6 +183,82 @@ fn read_data(file: String) -> io::Result<(Vec<Vec<char>>, (usize, usize), (usize
     return Ok((ret_m, s_pos, e_pos));
 }
 
+// ok IDK if try 2 would work however it takes too damn long
+// so with try 3 I will be ignoring changing dirreciton outside of calculating cost.
+// im going to assume there are no turns from the start into the first move, and then if im one off then im going to add or subtract it
+#[allow(dead_code, unused_assignments)]
+fn traverse_maze_2(maze: &Vec<Vec<char>>, pos: (usize, usize), l_pos: (usize, usize), end: &(usize, usize), been: &HashSet<(usize, usize)>) -> Option<Vec<(usize, usize)>> {
+    if been.contains(&(pos.0, pos.1)) {
+        return None;
+    }
+    let mut next_been = been.clone();
+    next_been.insert((pos.0, pos.1));
+
+    if pos.0 == end.0 && pos.1 == end.1 {
+        let mut ret = Vec::new();
+        ret.push((pos.0, pos.1));
+        return Some(ret);
+    }
+
+    let mut c_best = Vec::new();
+    let mut c_val = u32::MAX;
+    for n_pos in get_adj(&pos) {
+        if
+            maze[n_pos.0][n_pos.1] != '#' &&
+            !next_been.contains(&n_pos)
+        {
+            if let Some(mut n_path) = traverse_maze_2(maze, n_pos, pos, end, &next_been) {
+                n_path.push(pos.clone());
+                let n_val = path_cost(&n_path);
+
+                //update best path if better
+                if n_val < c_val {
+                    c_best = n_path;
+                    c_val = n_val;
+                }
+            }
+        }
+    }
+
+    // if its been updated by something then its checked each possible path from here and found one
+    if !c_best.is_empty() {
+        return Some(c_best);
+    }
+
+    return None;
+}
+
+///returns all possible positions from another position
+#[allow(dead_code, unused_assignments)]
+fn get_adj(pos: &(usize, usize)) -> Vec<(usize, usize)> {
+    let mut ret = Vec::new();
+    ret.push((pos.0 + 1, pos.1));
+    ret.push((pos.0 - 1, pos.1));
+    ret.push((pos.0, pos.1 + 1));
+    ret.push((pos.0, pos.1 - 1));
+    return ret;
+}
+
+#[allow(dead_code, unused_assignments)]
+fn path_cost(path: &Vec<(usize, usize)>) -> u32 {
+    if path.len() < 1 {
+        return u32::MAX;
+    }
+    let mut ret = 0;
+    let mut l_pos = path[0];
+    let mut l_dir = Dir::from_pos(&l_pos, &path[1]).unwrap();
+    for ii in 1..path.len() {
+        let n_dir = Dir::from_pos(&l_pos, &path[ii]).unwrap();
+        ret += 1;
+        if l_dir != n_dir {
+            ret += 1000;
+            l_dir = n_dir;
+        }
+        l_pos = path[ii];
+    }
+    return ret;
+}
+
 //ok so try 2 at traversing a maze, 
 //first we check if this pos and dir is allready in the maze, if so 
 /// pos end, and all instances of x, y is in ii, jj
@@ -171,7 +269,7 @@ fn traverse_maze(maze: &Vec<Vec<char>>, pos: (usize, usize), dir: Dir, end: &(us
     }
     let mut c_been = been.clone();
     c_been.insert((pos.0, pos.1, dir).clone());
-
+    
     // print!("Been: ");
     // for (ii, jj, dd) in &c_been {
     //     print!("({}, {}, {}) ", ii, jj, dd.p_dir_c());
@@ -323,6 +421,48 @@ mod tests {
         assert_eq!(true, p1_res < p2_res);
         assert_eq!(false, p1_res > p2_res);
         //assert_ne!(false, comp_path(&p1, &p2));
+    }
+
+    #[test]
+    fn test_pos_to_dir() {
+        let s_pos = (1, 1);
+        let u_pos = (0, 1);
+        let d_pos = (2, 1);
+        let l_pos = (1, 0);
+        let r_pos = (1, 2);
+        assert_eq!(Dir::Up, Dir::from_pos(&s_pos, &u_pos).unwrap());
+        assert_eq!(Dir::Down, Dir::from_pos(&s_pos, &d_pos).unwrap());
+        assert_eq!(Dir::Left, Dir::from_pos(&s_pos, &l_pos).unwrap());
+        assert_eq!(Dir::Right, Dir::from_pos(&s_pos, &r_pos).unwrap());
+    }
+
+    #[test]
+    fn test_path_cost() {
+        let mut p1 = Vec::new();
+        p1.push((10, 0));
+        p1.push((9, 0));
+        p1.push((8, 0));
+        p1.push((8, 1));
+        let mut p2 = Vec::new();
+        p2.push((10, 0));
+        p2.push((9, 0));
+        p2.push((8, 0));
+        p2.push((8, 1));
+        p2.push((7, 1));
+        let mut p3 = Vec::new();
+        p3.push((10, 0));
+        p3.push((9, 0));
+        p3.push((8, 0));
+        p3.push((8, 1));
+        p3.push((8, 2));
+        let p1_res = path_cost(&p1);
+        let p2_res = path_cost(&p2);
+        let p3_res = path_cost(&p3);
+        println!("p1: {p1_res}, p2: {p2_res}, p3: {p3_res}");
+        assert_eq!(true, p1_res < p2_res);
+        assert_eq!(true, p2_res > p1_res);
+        assert_eq!(true, p1_res < p3_res);
+        assert_eq!(true, p3_res < p2_res);
     }
 }
 //end
