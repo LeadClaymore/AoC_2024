@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::u32;
@@ -127,7 +128,7 @@ impl Dir {
 
 #[allow(dead_code, unused_assignments)]
 pub fn sixteen() -> io::Result<()> {
-    let (maze, s_pos, e_pos) = match read_data(String::from("C:/Users/Clayton Ross/Desktop/Rust/AoC_2024/data/16/data.txt")) {
+    let (maze, s_pos, e_pos) = match read_data(String::from("C:/Users/Clayton Ross/Desktop/Rust/AoC_2024/data/16/test.txt")) {
         Ok(stuff) => {
             println!("Data read");
             println!("s: ({}, {}), e: ({}, {})", stuff.1.0, stuff.1.1, stuff.2.0, stuff.2.1);
@@ -143,7 +144,7 @@ pub fn sixteen() -> io::Result<()> {
     };
 
 
-    if let Some(answer) = traverse_maze_2(&maze, s_pos, (s_pos.0, s_pos.1 - 1), &e_pos, &mut HashSet::new()) {
+    if let Some(answer) = traverse_maze_2(&maze, s_pos, &e_pos, &mut HashSet::new()) {
         // 1000 was the ofset that the original answer had with the test material, IDK and IDC why its 1000 off
         println!("answer = {}", path_cost(&answer) + 1000);
     }
@@ -183,11 +184,37 @@ fn read_data(file: String) -> io::Result<(Vec<Vec<char>>, (usize, usize), (usize
     return Ok((ret_m, s_pos, e_pos));
 }
 
+// Ok so this being try 4 I will not use recursion and instead itteration to find the answer
+// what im going to do is have a hashmap of positions
+#[allow(dead_code, unused_assignments)]
+fn traverse_maze_3(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: (usize, usize)) -> Option<Vec<(usize, usize)>> {
+    let mut been = Vec::new();
+    let mut been_moves = Vec::new();
+
+    been.push(Dir::Left.c_cords_2(&s_pos));
+    been.push(s_pos);
+
+    been_moves.push(0);
+    been_moves.push(0);
+    
+    loop {
+        match been_moves.last() {
+            Some(0) => return None,
+            Some(1) => return None,
+            Some(2) => return None,
+            Some(3) => return None,
+            _ => return None,
+        }
+    }
+
+    return None;
+}
+
 // ok IDK if try 2 would work however it takes too damn long
 // so with try 3 I will be ignoring changing dirreciton outside of calculating cost.
 // im going to assume there are no turns from the start into the first move, and then if im one off then im going to add or subtract it
 #[allow(dead_code, unused_assignments)]
-fn traverse_maze_2(maze: &Vec<Vec<char>>, pos: (usize, usize), l_pos: (usize, usize), end: &(usize, usize), been: &HashSet<(usize, usize)>) -> Option<Vec<(usize, usize)>> {
+fn traverse_maze_2(maze: &Vec<Vec<char>>, pos: (usize, usize), end: &(usize, usize), been: &HashSet<(usize, usize)>) -> Option<Vec<(usize, usize)>> {
     if been.contains(&(pos.0, pos.1)) {
         return None;
     }
@@ -197,6 +224,7 @@ fn traverse_maze_2(maze: &Vec<Vec<char>>, pos: (usize, usize), l_pos: (usize, us
     if pos.0 == end.0 && pos.1 == end.1 {
         let mut ret = Vec::new();
         ret.push((pos.0, pos.1));
+        println!("found end!");
         return Some(ret);
     }
 
@@ -207,7 +235,7 @@ fn traverse_maze_2(maze: &Vec<Vec<char>>, pos: (usize, usize), l_pos: (usize, us
             maze[n_pos.0][n_pos.1] != '#' &&
             !next_been.contains(&n_pos)
         {
-            if let Some(mut n_path) = traverse_maze_2(maze, n_pos, pos, end, &next_been) {
+            if let Some(mut n_path) = traverse_maze_2(maze, n_pos, end, &next_been) {
                 n_path.push(pos.clone());
                 let n_val = path_cost(&n_path);
 
