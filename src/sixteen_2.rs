@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use std::collections::HashMap;
+//use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::u32;
@@ -128,7 +128,7 @@ impl Dir {
 
 #[allow(dead_code, unused_assignments)]
 pub fn sixteen() -> io::Result<()> {
-    let (maze, s_pos, e_pos) = match read_data(String::from("C:/Users/Clayton Ross/Desktop/Rust/AoC_2024/data/16/test.txt")) {
+    let (maze, s_pos, e_pos) = match read_data(String::from("C:/Users/Clayton Ross/Desktop/Rust/AoC_2024/data/16/data.txt")) {
         Ok(stuff) => {
             println!("Data read");
             println!("s: ({}, {}), e: ({}, {})", stuff.1.0, stuff.1.1, stuff.2.0, stuff.2.1);
@@ -144,9 +144,9 @@ pub fn sixteen() -> io::Result<()> {
     };
 
 
-    if let Some(answer) = traverse_maze_2(&maze, s_pos, &e_pos, &mut HashSet::new()) {
-        // 1000 was the ofset that the original answer had with the test material, IDK and IDC why its 1000 off
-        println!("answer = {}", path_cost(&answer) + 1000);
+    if let Some(answer) = traverse_maze_3(&maze, s_pos, &e_pos) {
+        // -1 is from us using the left of the starting position so we start by moving right
+        println!("answer = {}", path_cost(&answer) - 1);
     }
     Ok(())
 }
@@ -187,74 +187,112 @@ fn read_data(file: String) -> io::Result<(Vec<Vec<char>>, (usize, usize), (usize
 // Ok so this being try 4 I will not use recursion and instead itteration to find the answer
 // what im going to do is have a hashmap of positions
 #[allow(dead_code, unused_assignments)]
-fn traverse_maze_3(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: (usize, usize)) -> Option<Vec<(usize, usize)>> {
+fn traverse_maze_3(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize, usize)) -> Option<Vec<(usize, usize)>> {
     let mut been = Vec::new();
     let mut been_moves = Vec::new();
 
     been.push(Dir::Left.c_cords_2(&s_pos));
     been.push(s_pos);
-
-    been_moves.push(0);
+    been_moves.push(4);
     been_moves.push(0);
     
-    loop {
-        match been_moves.last() {
-            Some(0) => return None,
-            Some(1) => return None,
-            Some(2) => return None,
-            Some(3) => return None,
-            _ => return None,
-        }
-    }
+    let mut best_path = Vec::new();
+    let mut best_val = u128::MAX;
 
-    return None;
+    loop {
+        // once we have check all of the maze
+        if been.is_empty() {
+            if best_path.is_empty() {
+                return None;
+            } else {
+                return Some(best_path);
+            }
+        }
+
+        // current position
+        let c_inx = been_moves.len() - 1;
+        let c_pos = been[c_inx];
+
+        // end condition
+        if c_pos.0 == e_pos.0 && c_pos.1 == e_pos.1 {
+            println!("end found!");
+            let c_val = path_cost(&been);
+            if c_val < best_val {
+                best_val = c_val;
+                best_path = been.clone();
+            }
+        }
+
+        // gets the dirrection based on how many times weve been on this pos
+        let c_dir = match been_moves[c_inx] {
+            0 => Dir::Down,
+            1 => Dir::Up,
+            2 => Dir::Left,
+            3 => Dir::Right,
+            // fully used
+            _       =>  {
+                been_moves.pop();
+                been.pop();
+                continue;
+            },
+        };
+
+        // next position based on dir, 
+        // if been does not contain and is not a wall then put it in the stack
+        // either way this square in been is used and gets itterated
+        let n_pos = c_dir.c_cords_2(&c_pos);
+        if 
+            !been.contains(&n_pos) &&
+            maze[n_pos.0][n_pos.1] != '#'
+        {
+            been.push(n_pos);
+            been_moves.push(0);
+        }
+        been_moves[c_inx] += 1;
+    }
 }
 
 // ok IDK if try 2 would work however it takes too damn long
 // so with try 3 I will be ignoring changing dirreciton outside of calculating cost.
 // im going to assume there are no turns from the start into the first move, and then if im one off then im going to add or subtract it
-#[allow(dead_code, unused_assignments)]
-fn traverse_maze_2(maze: &Vec<Vec<char>>, pos: (usize, usize), end: &(usize, usize), been: &HashSet<(usize, usize)>) -> Option<Vec<(usize, usize)>> {
-    if been.contains(&(pos.0, pos.1)) {
-        return None;
-    }
-    let mut next_been = been.clone();
-    next_been.insert((pos.0, pos.1));
+// #[allow(dead_code, unused_assignments)]
 
-    if pos.0 == end.0 && pos.1 == end.1 {
-        let mut ret = Vec::new();
-        ret.push((pos.0, pos.1));
-        println!("found end!");
-        return Some(ret);
-    }
-
-    let mut c_best = Vec::new();
-    let mut c_val = u32::MAX;
-    for n_pos in get_adj(&pos) {
-        if
-            maze[n_pos.0][n_pos.1] != '#' &&
-            !next_been.contains(&n_pos)
-        {
-            if let Some(mut n_path) = traverse_maze_2(maze, n_pos, end, &next_been) {
-                n_path.push(pos.clone());
-                let n_val = path_cost(&n_path);
-
-                //update best path if better
-                if n_val < c_val {
-                    c_best = n_path;
-                    c_val = n_val;
-                }
-            }
-        }
-    }
-
-    // if its been updated by something then its checked each possible path from here and found one
-    if !c_best.is_empty() {
-        return Some(c_best);
-    }
-
-    return None;
-}
+// fn traverse_maze_2(maze: &Vec<Vec<char>>, pos: (usize, usize), end: &(usize, usize), been: &HashSet<(usize, usize)>) -> Option<Vec<(usize, usize)>> {
+//     if been.contains(&(pos.0, pos.1)) {
+//         return None;
+//     }
+//     let mut next_been = been.clone();
+//     next_been.insert((pos.0, pos.1));
+//     if pos.0 == end.0 && pos.1 == end.1 {
+//         let mut ret = Vec::new();
+//         ret.push((pos.0, pos.1));
+//         println!("found end!");
+//         return Some(ret);
+//     }
+//     let mut c_best = Vec::new();
+//     let mut c_val = u32::MAX;
+//     for n_pos in get_adj(&pos) {
+//         if
+//             maze[n_pos.0][n_pos.1] != '#' &&
+//             !next_been.contains(&n_pos)
+//         {
+//             if let Some(mut n_path) = traverse_maze_2(maze, n_pos, end, &next_been) {
+//                 n_path.push(pos.clone());
+//                 let n_val = path_cost(&n_path);
+//                 //update best path if better
+//                 if n_val < c_val {
+//                     c_best = n_path;
+//                     c_val = n_val;
+//                 }
+//             }
+//         }
+//     }
+//     // if its been updated by something then its checked each possible path from here and found one
+//     if !c_best.is_empty() {
+//         return Some(c_best);
+//     }
+//     return None;
+// }
 
 ///returns all possible positions from another position
 #[allow(dead_code, unused_assignments)]
@@ -268,9 +306,9 @@ fn get_adj(pos: &(usize, usize)) -> Vec<(usize, usize)> {
 }
 
 #[allow(dead_code, unused_assignments)]
-fn path_cost(path: &Vec<(usize, usize)>) -> u32 {
+fn path_cost(path: &Vec<(usize, usize)>) -> u128 {
     if path.len() < 1 {
-        return u32::MAX;
+        return u128::MAX;
     }
     let mut ret = 0;
     let mut l_pos = path[0];
