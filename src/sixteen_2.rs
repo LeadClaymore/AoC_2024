@@ -191,10 +191,13 @@ fn read_data(file: String) -> io::Result<(Vec<Vec<char>>, (usize, usize), (usize
 #[allow(dead_code, unused_assignments)]
 fn traverse_maze_3(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize, usize)) -> Option<Vec<(usize, usize)>> {
     let mut been = Vec::new();
+    let mut been_set = HashSet::new();
     let mut been_moves = Vec::new();
 
     been.push(Dir::Left.c_cords_2(&s_pos));
     been.push(s_pos);
+    been_set.insert(Dir::Left.c_cords_2(&s_pos));
+    been_set.insert(s_pos);
     been_moves.push(4);
     been_moves.push(0);
     
@@ -203,7 +206,7 @@ fn traverse_maze_3(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
 
     loop {
         // once we have check all of the maze
-        if been.is_empty() {
+        if been_set.is_empty() {
             if best_path.is_empty() {
                 return None;
             } else {
@@ -217,7 +220,7 @@ fn traverse_maze_3(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
 
         // end condition
         if c_pos.0 == e_pos.0 && c_pos.1 == e_pos.1 {
-            println!("end found!, prev best: {}", best_val);
+            //println!("end found!, prev best: {}", best_val);
             let c_val = path_cost(&been);
             if c_val < best_val {
                 best_val = c_val;
@@ -235,6 +238,7 @@ fn traverse_maze_3(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
             // fully used
             _       =>  {
                 been_moves.pop();
+                been_set.remove(&c_pos);
                 been.pop();
                 continue;
             },
@@ -245,10 +249,11 @@ fn traverse_maze_3(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
         // either way this square in been is used and gets itterated
         let n_pos = c_dir.c_cords_2(&c_pos);
         if 
-            !been.contains(&n_pos) &&
+            !been_set.contains(&n_pos) &&
             maze[n_pos.0][n_pos.1] != '#'
         {
             been.push(n_pos);
+            been_set.insert(n_pos);
             been_moves.push(0);
         }
         been_moves[c_inx] += 1;
