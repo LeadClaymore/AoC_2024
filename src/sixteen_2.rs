@@ -184,6 +184,8 @@ fn read_data(file: String) -> io::Result<(Vec<Vec<char>>, (usize, usize), (usize
     return Ok((ret_m, s_pos, e_pos));
 }
 
+//traverse maze 5 (or 4 depending on count) is going to first take the maze, and atempt to turn it into a 
+
 // Ok so this being try 4 I will not use recursion and instead itteration to find the answer
 // what im going to do is have a hashmap of positions
 #[allow(dead_code, unused_assignments)]
@@ -215,11 +217,12 @@ fn traverse_maze_3(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
 
         // end condition
         if c_pos.0 == e_pos.0 && c_pos.1 == e_pos.1 {
-            println!("end found!");
+            println!("end found!, prev best: {}", best_val);
             let c_val = path_cost(&been);
             if c_val < best_val {
                 best_val = c_val;
                 best_path = been.clone();
+                println!("new best path cost: {}", best_val);
             }
         }
 

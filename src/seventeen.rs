@@ -3,7 +3,7 @@ use std::io::{self, BufRead};
 
 #[allow(dead_code, unused_assignments)]
 pub fn seventeen() -> io::Result<()> {
-    let (prog, regA, regB, regC) = match read_data(String::from("data/17/test.txt")) {
+    let (prog, reg_a, reg_b, reg_c) = match read_data(String::from("data/17/test.txt")) {
         Ok(stuff) => {
             println!("Data read");
             println!("reg A: {}", stuff.1);
@@ -18,9 +18,19 @@ pub fn seventeen() -> io::Result<()> {
         },
         Err(ret) => return Err(ret),
     };
+
+    let mut inx = 0;
+    while inx < prog.len() {
+        
+    }
     Ok(())
 }
 
+#[allow(dead_code, unused_assignments)]
+fn adv(reg_a: u32, den: u32) -> u32 {
+    let two: u32 = 2;
+    return reg_a / (two.pow(den) as u32);
+}
 /// returns the map, the start, and end locations
 #[allow(dead_code, unused_assignments)]
 fn read_data(file: String) -> io::Result<(Vec<u32>, u32, u32, u32)> {
