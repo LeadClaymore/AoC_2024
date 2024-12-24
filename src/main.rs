@@ -14,9 +14,11 @@ mod thirteen;
 mod fourteen;
 mod fifteen;
 mod sixteen_2;
+mod seventeen;
 
 fn main() {
-    println!("{:?}", sixteen_2::sixteen());
+    println!("{:?}", seventeen::seventeen());
+    //println!("{:?}", sixteen_2::sixteen());
     //println!("{:?}", fifteen::fifteen());
     //println!("{:?}", fourteen::fourteen());
     //println!("{:?}", thirteen::thirteen());

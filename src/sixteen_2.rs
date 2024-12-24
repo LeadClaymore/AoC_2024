@@ -394,6 +394,7 @@ fn traverse_maze(maze: &Vec<Vec<char>>, pos: (usize, usize), dir: Dir, end: &(us
 }
 
 /// prints the maze and replaces 1 position with a char passed in
+#[allow(dead_code, unused_assignments)]
 fn print_maze(maze: &Vec<Vec<char>>, pp: (usize, usize), cc: char) {
     for ii in 0..maze.len() {
         for jj in 0..maze[ii].len() {
