@@ -3,7 +3,7 @@ use std::io::{self, BufRead};
 
 #[allow(dead_code, unused_assignments)]
 pub fn seventeen() -> io::Result<()> {
-    let (mut prog, mut reg_a, mut reg_b, mut reg_c) = match read_data(String::from("data/17/data.txt")) {
+    let (mut prog, mut reg_a, mut reg_b, mut reg_c) = match read_data(String::from("C:/Users/Clayton Ross/Desktop/Rust/AoC_2024/data/17/test.txt")) {
         Ok(stuff) => {
             println!("Data read");
             println!("reg A: {}", stuff.1);
@@ -18,58 +18,86 @@ pub fn seventeen() -> io::Result<()> {
         },
         Err(ret) => return Err(ret),
     };
-
+    let (_o_reg_a, o_reg_b, o_reg_c) = (reg_a, reg_b, reg_c);
+    let o_prog = prog.clone();
+    let mut answer = Vec::new();
     let mut inx = 0;
-    while inx < prog.len() {
-        let l_op = prog[inx + 1];
-        let c_op = match l_op {
-            0 => Some(0),
-            1 => Some(1),
-            2 => Some(2),
-            3 => Some(3),
-            4 => Some(reg_a),
-            5 => Some(reg_b),
-            6 => Some(reg_c),
-            _ => None,
-        };
-
-        match prog[inx] {
-            0 => {
-                reg_a = adv(reg_a, c_op.unwrap());
-            },
-            1 => {
-                reg_b = bxl(reg_b, l_op);
-            },
-            2 => {
-                reg_b = bst(c_op.unwrap());
-            },
-            3 => {
-                if let Some(n_inx) = jnz(reg_a, l_op) {
-                    inx = n_inx;
-                    continue;
-                }
-            },
-            4 => {
-                reg_b = bxc(reg_b, reg_c);
-            },
-            5 => {
-                out(c_op.unwrap());
-            },
-            6 => {
-                reg_b = bdv(reg_a, c_op.unwrap());
-            },
-            7 => {
-                reg_c = cdv(reg_a, c_op.unwrap());
-            },
-            _ => {
-                println!("error here is the program: ");
-                print_inst(&prog, reg_a, reg_b, reg_c, inx);
-            },
+    for ii in 0..u32::MAX {
+        answer.clear();
+        prog = o_prog.clone();
+        (reg_a, reg_b, reg_c) = (ii, o_reg_b, o_reg_c);
+        while inx < prog.len() {
+            let l_op = prog[inx + 1];
+            let c_op = match l_op {
+                0 => Some(0),
+                1 => Some(1),
+                2 => Some(2),
+                3 => Some(3),
+                4 => Some(reg_a),
+                5 => Some(reg_b),
+                6 => Some(reg_c),
+                _ => None,
+            };
+    
+            match prog[inx] {
+                0 => {
+                    if c_op.is_none() {
+                        break;
+                    }
+                    reg_a = adv(reg_a, c_op.unwrap());
+                },
+                1 => {
+                    reg_b = bxl(reg_b, l_op);
+                },
+                2 => {
+                    if c_op.is_none() {
+                        break;
+                    }
+                    reg_b = bst(c_op.unwrap());
+                },
+                3 => {
+                    if let Some(n_inx) = jnz(reg_a, l_op) {
+                        inx = n_inx;
+                        continue;
+                    }
+                },
+                4 => {
+                    reg_b = bxc(reg_b, reg_c);
+                },
+                5 => {
+                    if c_op.is_none() {
+                        break;
+                    }
+                    answer.push(out(c_op.unwrap(), false));
+                },
+                6 => {
+                    if c_op.is_none() {
+                        break;
+                    }
+                    reg_b = bdv(reg_a, c_op.unwrap());
+                },
+                7 => {
+                    if c_op.is_none() {
+                        break;
+                    }
+                    reg_c = cdv(reg_a, c_op.unwrap());
+                },
+                _ => {
+                    //println!("error here is the program: ");
+                    //print_inst(&prog, reg_a, reg_b, reg_c, inx);
+                    break;
+                },
+            }
+            inx += 2;
         }
-        inx += 2;
+        if o_prog == answer {
+            println!("answer is {ii}");
+            break;
+        }
     }
-    println!("");
-    print_inst(&prog, reg_a, reg_b, reg_c, inx);
+    
+    //println!("");
+    //print_inst(&prog, reg_a, reg_b, reg_c, inx);
     Ok(())
 }
 
@@ -124,8 +152,11 @@ fn bxc(reg_b: u32, reg_c: u32) -> u32 {
 
 /// 5 prints a value, idk how /n is meant to work
 #[allow(dead_code, unused_assignments)]
-fn out(c_op: u32) {
-    print!("{},", c_op % 8);
+fn out(c_op: u32, print: bool) -> u32 {
+    if print {
+        print!("{},", c_op % 8);
+    }
+    return c_op % 8;
 }
 
 /// 6 put this in b
