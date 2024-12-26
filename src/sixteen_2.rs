@@ -9,9 +9,11 @@ struct Edge {
     cost: u128,
     d1: Dir,
     p1: (usize, usize),
+    inx1: usize,
     d2: Dir,
     p2: (usize, usize),
     de: bool,
+    inx2: usize,
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Hash)]
@@ -154,7 +156,7 @@ impl Dir {
 
 #[allow(dead_code, unused_assignments)]
 pub fn sixteen() -> io::Result<()> {
-    let (maze, s_pos, e_pos) = match read_data(String::from("C:/Users/Clayton Ross/Desktop/Rust/AoC_2024/data/16/test.txt")) {
+    let (maze, s_pos, e_pos) = match read_data(String::from("C:/Users/Clayton Ross/Desktop/Rust/AoC_2024/data/16/data.txt")) {
         Ok(stuff) => {
             println!("Data read");
             println!("s: ({}, {}), e: ({}, {})", stuff.1.0, stuff.1.1, stuff.2.0, stuff.2.1);
@@ -269,12 +271,19 @@ fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
                 e_maze[n_pos.0][n_pos.1] == MP::Node || 
                 e_maze[n_pos.0][n_pos.1] == MP::Edge
             {
-
-                
+                find_edge(&mut e_maze, &mut graph, nn, &(ii, jj), dd);
             }
         }
     }
 
+    //testing
+    for ii in 0..graph.len() {
+        print!("de: {}, ({}, {}) ", graph[ii].de, graph[ii].pos.0, graph[ii].pos.1);
+        for jj in 0..graph[ii].edges.len() {
+            print!("[de: {}, cost: {}, d1: {}, d2: {}]", graph[ii].edges[jj].de, graph[ii].edges[jj].cost, graph[ii].edges[jj].d1.p_dir(), graph[ii].edges[jj].d2.p_dir())
+        }
+        println!("");
+    }
     //TODO start might be a dead end
 
     return None;
@@ -282,7 +291,7 @@ fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
 
 #[allow(dead_code, unused_assignments)]
 /// takes a reference to the enm_map, a pos and dir and goes until the next node
-fn find_edge(maze: &mut Vec<Vec<MP>>, Nodes: &mut Vec<Node>, s_pos: &(usize, usize), s_dir: Dir) -> Option<Edge> {
+fn find_edge(maze: &mut Vec<Vec<MP>>, nodes: &mut Vec<Node>, n_inx: usize, s_pos: &(usize, usize), s_dir: Dir) {
     let mut dead_end = false;
     let mut cost = 0;
     let mut c_pos = s_pos.clone();
@@ -319,19 +328,25 @@ fn find_edge(maze: &mut Vec<Vec<MP>>, Nodes: &mut Vec<Node>, s_pos: &(usize, usi
                 c_dir = dd;
                 cost += 1000;
             }
-            for nn in 0..Nodes.len() {
-                if Nodes[nn].pos == n_pos {
-                    
-                }
-            }
-            return Some(Edge {
+            let mut ee = Edge {
                 cost: cost,
                 d1: s_dir,
                 p1: s_pos.clone(),
+                inx1: n_inx,
                 d2: c_dir,
                 p2: c_pos.clone(),
                 de: dead_end,
-            });
+                inx2: 0,
+            };
+            //TODO if prog takes too long then find a way to not have to search the entire node
+            for nn in 0..nodes.len() {
+                if nodes[nn].pos == n_pos {
+                    ee.inx2 = nn;
+                    nodes[nn].edges.push(ee.clone());
+                }
+            }
+            nodes[n_inx].edges.push(ee);
+            return;
         }
         if moved {
             continue;
@@ -339,7 +354,7 @@ fn find_edge(maze: &mut Vec<Vec<MP>>, Nodes: &mut Vec<Node>, s_pos: &(usize, usi
         break;
     }
     println!("invalid edge ({}, {})", c_pos.0, c_pos.1);
-    return None;
+    return;
 }
 
 // Ok so this being try 4 I will not use recursion and instead itteration to find the answer
