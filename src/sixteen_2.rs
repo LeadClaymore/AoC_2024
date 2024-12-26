@@ -5,6 +5,30 @@ use std::io::{self, BufRead};
 use std::u32;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
+struct Edge {
+    cost: u128,
+    d1: Dir,
+    p1: (usize, usize),
+    d2: Dir,
+    p2: (usize, usize),
+}
+
+#[derive(Clone, PartialEq, Eq, Debug, Hash)]
+struct Node {
+    pos: (usize, usize),
+    edges: Vec<Edge>,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
+enum MP {
+    Empty,
+    Node,
+    Edge,
+    Wall,
+    DeadEnd,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
 enum Dir {
     Up,
     Down,
@@ -128,7 +152,7 @@ impl Dir {
 
 #[allow(dead_code, unused_assignments)]
 pub fn sixteen() -> io::Result<()> {
-    let (maze, s_pos, e_pos) = match read_data(String::from("C:/Users/Clayton Ross/Desktop/Rust/AoC_2024/data/16/data.txt")) {
+    let (maze, s_pos, e_pos) = match read_data(String::from("C:/Users/Clayton Ross/Desktop/Rust/AoC_2024/data/16/test.txt")) {
         Ok(stuff) => {
             println!("Data read");
             println!("s: ({}, {}), e: ({}, {})", stuff.1.0, stuff.1.1, stuff.2.0, stuff.2.1);
@@ -144,7 +168,7 @@ pub fn sixteen() -> io::Result<()> {
     };
 
 
-    if let Some(answer) = traverse_maze_3(&maze, s_pos, &e_pos) {
+    if let Some(answer) = traverse_maze_4(&maze, s_pos, &e_pos) {
         // -1 is from us using the left of the starting position so we start by moving right
         println!("answer = {}", path_cost(&answer) - 1);
     }
@@ -184,7 +208,47 @@ fn read_data(file: String) -> io::Result<(Vec<Vec<char>>, (usize, usize), (usize
     return Ok((ret_m, s_pos, e_pos));
 }
 
-//traverse maze 5 (or 4 depending on count) is going to first take the maze, and atempt to turn it into a 
+//traverse maze 5 (or 4 depending on count) is going to first take the maze, and atempt to turn it into a graph of costs between two points
+#[allow(dead_code, unused_assignments)]
+fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize, usize)) -> Option<Vec<(usize, usize)>> {
+    let mut enm_graph = Vec::new();
+    // for each node in the maze determin what MP it would be based on if its a '#' or what its adj to
+    for ii in 0..maze.len() {
+        enm_graph.push(Vec::new());
+        for jj in 0..maze[ii].len() {
+            if maze[ii][jj] == '#' {
+                enm_graph[ii].push(MP::Wall);
+            } else {
+                let mut adj = 0;
+                for dd in Dir::all() {
+                    let pos = dd.c_cords_2(&(ii, jj));
+                    if maze[pos.0][pos.1] != '#' {
+                        adj += 1;
+                    }
+                }
+                let mp = match adj {
+                    0 => {
+                        println!("Error non '#' with 0 adj spaces");
+                        MP::Wall
+                    },
+                    1 => MP::DeadEnd,
+                    2 => MP::Edge,
+                    3 => MP::Node,
+                    4 => MP::Node,
+                    _ => {
+                        println!("Error non '#' with >4 adj spaces");
+                        MP::Wall
+                    },
+                };
+                enm_graph[ii].push(mp);
+            }
+        }
+    }
+
+    
+
+    return None;
+}
 
 // Ok so this being try 4 I will not use recursion and instead itteration to find the answer
 // what im going to do is have a hashmap of positions

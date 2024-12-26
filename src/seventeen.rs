@@ -3,7 +3,7 @@ use std::io::{self, BufRead};
 
 #[allow(dead_code, unused_assignments)]
 pub fn seventeen() -> io::Result<()> {
-    let (mut prog, mut reg_a, mut reg_b, mut reg_c) = match read_data(String::from("C:/Users/Clayton Ross/Desktop/Rust/AoC_2024/data/17/test.txt")) {
+    let (mut prog, mut reg_a, mut reg_b, mut reg_c) = match read_data(String::from("C:/Users/Clayton Ross/Desktop/Rust/AoC_2024/data/17/data.txt")) {
         Ok(stuff) => {
             println!("Data read");
             println!("reg A: {}", stuff.1);
@@ -22,10 +22,12 @@ pub fn seventeen() -> io::Result<()> {
     let o_prog = prog.clone();
     let mut answer = Vec::new();
     let mut inx = 0;
-    for ii in 0..u32::MAX {
+    for ii in (u32::MAX as u128)..(u64::MAX as u128) {
+        //let ii = 117440;
         answer.clear();
         prog = o_prog.clone();
         (reg_a, reg_b, reg_c) = (ii, o_reg_b, o_reg_c);
+        inx = 0;
         while inx < prog.len() {
             let l_op = prog[inx + 1];
             let c_op = match l_op {
@@ -90,7 +92,10 @@ pub fn seventeen() -> io::Result<()> {
             }
             inx += 2;
         }
-        if o_prog == answer {
+        
+        if comp_vec(&o_prog, &answer) {
+            o_prog.into_iter().for_each(|num| print!("{num}, "));
+            answer.into_iter().for_each(|num| print!("{num}, "));
             println!("answer is {ii}");
             break;
         }
@@ -101,9 +106,24 @@ pub fn seventeen() -> io::Result<()> {
     Ok(())
 }
 
+#[allow(dead_code, unused_assignments)]
+fn comp_vec(va: &Vec<u128>, vb: &Vec<u128>) -> bool {
+    if va.len() != vb.len() {
+        return false;
+    }
+
+    for ii in 0..va.len() {
+        if va[ii] != vb[ii] {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 /// prints all relevent data
 #[allow(dead_code, unused_assignments)]
-fn print_inst(prog: &Vec<u32>, reg_a: u32, reg_b: u32, reg_c: u32, inx: usize) {
+fn print_inst(prog: &Vec<u128>, reg_a: u128, reg_b: u128, reg_c: u128, inx: usize) {
     println!("reg A: {}", reg_a);
     println!("reg B: {}", reg_b);
     println!("reg C: {}", reg_c);
@@ -117,26 +137,26 @@ fn print_inst(prog: &Vec<u32>, reg_a: u32, reg_b: u32, reg_c: u32, inx: usize) {
 
 /// 0, put this in a
 #[allow(dead_code, unused_assignments)]
-fn adv(reg_a: u32, c_op: u32) -> u32 {
-    let two: u32 = 2;
-    return reg_a / (two.pow(c_op) as u32);
+fn adv(reg_a: u128, c_op: u128) -> u128 {
+    let two: u128 = 2;
+    return reg_a / (two.pow(c_op as u32) as u128);
 }
 
 /// 1, put this in b
 #[allow(dead_code, unused_assignments)]
-fn bxl(reg_b: u32, l_op: u32) -> u32 {
+fn bxl(reg_b: u128, l_op: u128) -> u128 {
     return reg_b ^ l_op;
 }
 
 /// 2, put this in b
 #[allow(dead_code, unused_assignments)]
-fn bst(c_op: u32) -> u32 {
+fn bst(c_op: u128) -> u128 {
     return c_op % 8;
 }
 
 /// 3, if none do nothing, if some jump inx to this and dont increment by 2
 #[allow(dead_code, unused_assignments)]
-fn jnz(reg_a: u32, l_op: u32) -> Option<usize> {
+fn jnz(reg_a: u128, l_op: u128) -> Option<usize> {
     if reg_a == 0 {
         return None;
     } else {
@@ -146,13 +166,13 @@ fn jnz(reg_a: u32, l_op: u32) -> Option<usize> {
 
 /// 4 put this in b
 #[allow(dead_code, unused_assignments)]
-fn bxc(reg_b: u32, reg_c: u32) -> u32 {
+fn bxc(reg_b: u128, reg_c: u128) -> u128 {
     return reg_b ^ reg_c;
 }
 
 /// 5 prints a value, idk how /n is meant to work
 #[allow(dead_code, unused_assignments)]
-fn out(c_op: u32, print: bool) -> u32 {
+fn out(c_op: u128, print: bool) -> u128 {
     if print {
         print!("{},", c_op % 8);
     }
@@ -161,21 +181,21 @@ fn out(c_op: u32, print: bool) -> u32 {
 
 /// 6 put this in b
 #[allow(dead_code, unused_assignments)]
-fn bdv(reg_a: u32, c_op: u32) -> u32 {
-    let two: u32 = 2;
-    return reg_a / (two.pow(c_op) as u32);
+fn bdv(reg_a: u128, c_op: u128) -> u128 {
+    let two: u128 = 2;
+    return reg_a / (two.pow(c_op as u32) as u128);
 }
 
 /// 7 put this in c
 #[allow(dead_code, unused_assignments)]
-fn cdv(reg_a: u32, c_op: u32) -> u32 {
-    let two: u32 = 2;
-    return reg_a / (two.pow(c_op) as u32);
+fn cdv(reg_a: u128, c_op: u128) -> u128 {
+    let two: u128 = 2;
+    return reg_a / (two.pow(c_op as u32) as u128);
 }
 
 // /// # put this in #
 // #[allow(dead_code, unused_assignments)]
-// fn ###(reg_b: u32, l_op: u32) -> u32 {
+// fn ###(reg_b: u128, l_op: u128) -> u128 {
 //     return reg_b ^ l_op;
 // }
 
@@ -183,12 +203,12 @@ fn cdv(reg_a: u32, c_op: u32) -> u32 {
 
 /// returns the map, the start, and end locations
 #[allow(dead_code, unused_assignments)]
-fn read_data(file: String) -> io::Result<(Vec<u32>, u32, u32, u32)> {
+fn read_data(file: String) -> io::Result<(Vec<u128>, u128, u128, u128)> {
     let mut ret_p = Vec::new();
     let (mut ra, mut rb, mut rc) = (0, 0, 0);
 
-    let mut t_num = 0;
-    let mut ii = 0;
+    let mut t_num: u128 = 0;
+    let mut ii: i32 = 0;
     let reader = io::BufReader::new(File::open(file)?);
     for line_res in reader.lines() {
         let line = line_res?;
@@ -197,7 +217,7 @@ fn read_data(file: String) -> io::Result<(Vec<u32>, u32, u32, u32)> {
         } else if ii < 3 {
             for cc in line.chars() {
                 if let Some(nn) = cc.to_digit(10) {
-                    t_num = t_num * 10 + nn;
+                    t_num = t_num * 10 + nn as u128;
                 }
             }
             if ii == 0 {
@@ -214,7 +234,7 @@ fn read_data(file: String) -> io::Result<(Vec<u32>, u32, u32, u32)> {
         } else {
             for cc in line.chars() {
                 if let Some(nn) = cc.to_digit(10) {
-                    ret_p.push(nn);
+                    ret_p.push(nn as u128);
                 }
             }
         }
