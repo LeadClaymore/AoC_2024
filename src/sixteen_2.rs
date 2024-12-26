@@ -11,10 +11,12 @@ struct Edge {
     p1: (usize, usize),
     d2: Dir,
     p2: (usize, usize),
+    de: bool,
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Hash)]
 struct Node {
+    de: bool,
     pos: (usize, usize),
     edges: Vec<Edge>,
 }
@@ -211,13 +213,14 @@ fn read_data(file: String) -> io::Result<(Vec<Vec<char>>, (usize, usize), (usize
 //traverse maze 5 (or 4 depending on count) is going to first take the maze, and atempt to turn it into a graph of costs between two points
 #[allow(dead_code, unused_assignments)]
 fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize, usize)) -> Option<Vec<(usize, usize)>> {
-    let mut enm_graph = Vec::new();
+    let mut e_maze = Vec::new();
+    let mut graph = Vec::new();
     // for each node in the maze determin what MP it would be based on if its a '#' or what its adj to
     for ii in 0..maze.len() {
-        enm_graph.push(Vec::new());
+        e_maze.push(Vec::new());
         for jj in 0..maze[ii].len() {
             if maze[ii][jj] == '#' {
-                enm_graph[ii].push(MP::Wall);
+                e_maze[ii].push(MP::Wall);
             } else {
                 let mut adj = 0;
                 for dd in Dir::all() {
@@ -240,13 +243,102 @@ fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
                         MP::Wall
                     },
                 };
-                enm_graph[ii].push(mp);
+                if mp == MP::Node {
+                    graph.push(Node { 
+                            de: false,
+                            pos: (ii, jj), 
+                            edges: Vec::new(),
+                        });
+                } else if mp == MP::DeadEnd {
+                    graph.push(Node { 
+                        de: true,
+                        pos: (ii, jj), 
+                        edges: Vec::new(),
+                    });
+                }
+                e_maze[ii].push(mp);
             }
         }
     }
 
-    
+    for nn in 0..graph.len() {
+        let (ii, jj) = graph[nn].pos;
+        for dd in Dir::all() {
+            let n_pos = dd.c_cords_2(&(ii, jj));
+            if 
+                e_maze[n_pos.0][n_pos.1] == MP::Node || 
+                e_maze[n_pos.0][n_pos.1] == MP::Edge
+            {
 
+                
+            }
+        }
+    }
+
+    //TODO start might be a dead end
+
+    return None;
+}
+
+#[allow(dead_code, unused_assignments)]
+/// takes a reference to the enm_map, a pos and dir and goes until the next node
+fn find_edge(maze: &mut Vec<Vec<MP>>, Nodes: &mut Vec<Node>, s_pos: &(usize, usize), s_dir: Dir) -> Option<Edge> {
+    let mut dead_end = false;
+    let mut cost = 0;
+    let mut c_pos = s_pos.clone();
+    let mut c_dir = s_dir;
+    let mut moved = false;
+    loop {
+        moved = false;
+        for dd in c_dir.all_but_opose() {
+            let n_pos = dd.c_cords_2(&c_pos);
+            match maze[n_pos.0][n_pos.1] {
+                MP::Edge => {
+                    maze[n_pos.0][n_pos.1] = MP::Empty;
+                    c_pos = n_pos;
+                    cost += 1;
+                    if dd != c_dir {
+                        c_dir = dd;
+                        cost += 1000;
+                    }
+                    moved = true;
+                    break;
+                },
+                MP::Node => dead_end = false,
+                MP::DeadEnd => dead_end = true,
+                MP::Wall => {
+                    continue;
+                },
+                MP::Empty => {
+                    continue;
+                },
+            }
+            c_pos = n_pos;
+            cost += 1;
+            if dd != c_dir {
+                c_dir = dd;
+                cost += 1000;
+            }
+            for nn in 0..Nodes.len() {
+                if Nodes[nn].pos == n_pos {
+                    
+                }
+            }
+            return Some(Edge {
+                cost: cost,
+                d1: s_dir,
+                p1: s_pos.clone(),
+                d2: c_dir,
+                p2: c_pos.clone(),
+                de: dead_end,
+            });
+        }
+        if moved {
+            continue;
+        }
+        break;
+    }
+    println!("invalid edge ({}, {})", c_pos.0, c_pos.1);
     return None;
 }
 
