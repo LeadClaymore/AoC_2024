@@ -2,7 +2,7 @@ use std::collections::HashSet;
 //use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, BufRead};
-use std::u32;
+use std::{u32, usize};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
 struct Edge {
@@ -217,6 +217,7 @@ fn read_data(file: String) -> io::Result<(Vec<Vec<char>>, (usize, usize), (usize
 fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize, usize)) -> Option<Vec<(usize, usize)>> {
     let mut e_maze = Vec::new();
     let mut graph = Vec::new();
+    let mut s_graph_inx = usize::MAX;
     // for each node in the maze determin what MP it would be based on if its a '#' or what its adj to
     for ii in 0..maze.len() {
         e_maze.push(Vec::new());
@@ -245,6 +246,10 @@ fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
                         MP::Wall
                     },
                 };
+                if ii == s_pos.0 && jj == s_pos.1 {
+                    // because we havent put the thing in, we want the +1 from len()
+                    s_graph_inx = graph.len();
+                }
                 if mp == MP::Node {
                     graph.push(Node { 
                             de: false,
@@ -284,7 +289,19 @@ fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
         }
         println!("");
     }
+
+    let mut best_count = u128::MAX;
     //TODO start might be a dead end
+    //need to try to traverse the nodes try to copy the tm3 but with the new graph
+    let mut b_set = HashSet::new(); //holds inx of nodes
+    b_set.insert(s_graph_inx);
+    let mut b_vec = Vec::new();
+    b_vec.push(s_graph_inx);
+    //let mut b_count = Vec::new();
+    let mut cg_inx = s_graph_inx; // index to the graph
+    while b_vec.len() > 0 {
+
+    }
 
     return None;
 }

@@ -22,7 +22,7 @@ pub fn seventeen() -> io::Result<()> {
     let o_prog = prog.clone();
     let mut answer = Vec::new();
     let mut inx = 0;
-    for ii in (u32::MAX as u128)..(u64::MAX as u128) {
+    for ii in ((u32::MAX as u128) * 2)..((u32::MAX as u128) * 3) {
         //let ii = 117440;
         answer.clear();
         prog = o_prog.clone();
