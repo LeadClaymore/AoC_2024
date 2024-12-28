@@ -22,43 +22,51 @@ pub fn seventeen() -> io::Result<()> {
     let o_prog = prog.clone();
     let mut answer = Vec::new();
     let mut inx = 0;
-    for ii in ((u32::MAX as u128) * 2)..((u32::MAX as u128) * 3) {
+    for ii in ((u32::MAX as u128) * 1)..(u128::MAX) {
         //let ii = 117440;
         answer.clear();
         prog = o_prog.clone();
         (reg_a, reg_b, reg_c) = (ii, o_reg_b, o_reg_c);
         inx = 0;
         while inx < prog.len() {
-            let l_op = prog[inx + 1];
-            let c_op = match l_op {
-                0 => Some(0),
-                1 => Some(1),
-                2 => Some(2),
-                3 => Some(3),
-                4 => Some(reg_a),
-                5 => Some(reg_b),
-                6 => Some(reg_c),
-                _ => None,
-            };
-    
             match prog[inx] {
                 0 => {
+                    let c_op = match prog[inx + 1] {
+                        0 => Some(0),
+                        1 => Some(1),
+                        2 => Some(2),
+                        3 => Some(3),
+                        4 => Some(reg_a),
+                        5 => Some(reg_b),
+                        6 => Some(reg_c),
+                        _ => None,
+                    };
                     if c_op.is_none() {
                         break;
                     }
                     reg_a = adv(reg_a, c_op.unwrap());
                 },
                 1 => {
-                    reg_b = bxl(reg_b, l_op);
+                    reg_b = bxl(reg_b, prog[inx + 1]);
                 },
                 2 => {
+                    let c_op = match prog[inx + 1] {
+                        0 => Some(0),
+                        1 => Some(1),
+                        2 => Some(2),
+                        3 => Some(3),
+                        4 => Some(reg_a),
+                        5 => Some(reg_b),
+                        6 => Some(reg_c),
+                        _ => None,
+                    };
                     if c_op.is_none() {
                         break;
                     }
                     reg_b = bst(c_op.unwrap());
                 },
                 3 => {
-                    if let Some(n_inx) = jnz(reg_a, l_op) {
+                    if let Some(n_inx) = jnz(reg_a, prog[inx + 1]) {
                         inx = n_inx;
                         continue;
                     }
@@ -67,18 +75,48 @@ pub fn seventeen() -> io::Result<()> {
                     reg_b = bxc(reg_b, reg_c);
                 },
                 5 => {
+                    let c_op = match prog[inx + 1] {
+                        0 => Some(0),
+                        1 => Some(1),
+                        2 => Some(2),
+                        3 => Some(3),
+                        4 => Some(reg_a),
+                        5 => Some(reg_b),
+                        6 => Some(reg_c),
+                        _ => None,
+                    };
                     if c_op.is_none() {
                         break;
                     }
                     answer.push(out(c_op.unwrap(), false));
                 },
                 6 => {
+                    let c_op = match prog[inx + 1] {
+                        0 => Some(0),
+                        1 => Some(1),
+                        2 => Some(2),
+                        3 => Some(3),
+                        4 => Some(reg_a),
+                        5 => Some(reg_b),
+                        6 => Some(reg_c),
+                        _ => None,
+                    };
                     if c_op.is_none() {
                         break;
                     }
                     reg_b = bdv(reg_a, c_op.unwrap());
                 },
                 7 => {
+                    let c_op = match prog[inx + 1] {
+                        0 => Some(0),
+                        1 => Some(1),
+                        2 => Some(2),
+                        3 => Some(3),
+                        4 => Some(reg_a),
+                        5 => Some(reg_b),
+                        6 => Some(reg_c),
+                        _ => None,
+                    };
                     if c_op.is_none() {
                         break;
                     }

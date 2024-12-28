@@ -2,7 +2,7 @@ use std::collections::HashSet;
 //use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, BufRead};
-use std::{u32, usize};
+use std::{u128, u32, usize};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
 struct Edge {
@@ -16,11 +16,45 @@ struct Edge {
     inx2: usize,
 }
 
+impl Edge {
+    #[allow(dead_code, unused_assignments)]
+    fn inx_to_dir(&self, inx: usize) -> Option<Dir> {
+        if inx == self.inx1 {
+            return Some(self.d1);
+        } else if inx == self.inx2 {
+            return Some(self.d2);
+        } else {
+            println!("Error getting dir of edge");
+            return None;
+        }
+    }
+}
+
 #[derive(Clone, PartialEq, Eq, Debug, Hash)]
 struct Node {
     de: bool,
     pos: (usize, usize),
     edges: Vec<Edge>,
+}
+
+impl Node {
+    #[allow(dead_code, unused_assignments)]
+    fn find_edge(&self, inx: usize) -> Option<Edge> {
+        let mut lowest_inx = usize::MAX;
+        for ii in 0..self.edges.len() {
+            if 
+                self.edges[ii].inx1 == inx ||
+                self.edges[ii].inx2 == inx 
+            {
+                if lowest_inx != usize::MAX {
+                    
+                }
+            }
+        }
+        if lowest_inx != usize::MAX {
+
+        }
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
@@ -173,8 +207,7 @@ pub fn sixteen() -> io::Result<()> {
 
 
     if let Some(answer) = traverse_maze_4(&maze, s_pos, &e_pos) {
-        // -1 is from us using the left of the starting position so we start by moving right
-        println!("answer = {}", path_cost(&answer) - 1);
+        println!("answer = {}", answer);
     }
     Ok(())
 }
@@ -214,10 +247,11 @@ fn read_data(file: String) -> io::Result<(Vec<Vec<char>>, (usize, usize), (usize
 
 //traverse maze 5 (or 4 depending on count) is going to first take the maze, and atempt to turn it into a graph of costs between two points
 #[allow(dead_code, unused_assignments)]
-fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize, usize)) -> Option<Vec<(usize, usize)>> {
+fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize, usize)) -> Option<u128> {
     let mut e_maze = Vec::new();
     let mut graph = Vec::new();
     let mut s_graph_inx = usize::MAX;
+    let mut e_graph_inx = usize::MAX;
     // for each node in the maze determin what MP it would be based on if its a '#' or what its adj to
     for ii in 0..maze.len() {
         e_maze.push(Vec::new());
@@ -249,6 +283,10 @@ fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
                 if ii == s_pos.0 && jj == s_pos.1 {
                     // because we havent put the thing in, we want the +1 from len()
                     s_graph_inx = graph.len();
+                    //println!("start node found");
+                } else if ii == e_pos.0 && jj == e_pos.1 {
+                    e_graph_inx = graph.len();
+                    //println!("end node found");
                 }
                 if mp == MP::Node {
                     graph.push(Node { 
@@ -282,13 +320,13 @@ fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
     }
 
     //testing
-    for ii in 0..graph.len() {
-        print!("de: {}, ({}, {}) ", graph[ii].de, graph[ii].pos.0, graph[ii].pos.1);
-        for jj in 0..graph[ii].edges.len() {
-            print!("[de: {}, cost: {}, d1: {}, d2: {}]", graph[ii].edges[jj].de, graph[ii].edges[jj].cost, graph[ii].edges[jj].d1.p_dir(), graph[ii].edges[jj].d2.p_dir())
-        }
-        println!("");
-    }
+    // for ii in 0..graph.len() {
+    //     print!("de: {}, ({}, {}) ", graph[ii].de, graph[ii].pos.0, graph[ii].pos.1);
+    //     for jj in 0..graph[ii].edges.len() {
+    //         print!("[de: {}, cost: {}, d1: {}, d2: {}]", graph[ii].edges[jj].de, graph[ii].edges[jj].cost, graph[ii].edges[jj].d1.p_dir(), graph[ii].edges[jj].d2.p_dir())
+    //     }
+    //     println!("");
+    // }
 
     let mut best_count = u128::MAX;
     //TODO start might be a dead end
@@ -297,13 +335,64 @@ fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
     b_set.insert(s_graph_inx);
     let mut b_vec = Vec::new();
     b_vec.push(s_graph_inx);
-    //let mut b_count = Vec::new();
+    let mut b_count = Vec::new();
+    b_count.push(0);
     let mut cg_inx = s_graph_inx; // index to the graph
     while b_vec.len() > 0 {
-
+        let c_len = b_count.len() - 1;
+        // if there are no more paths on this node (rhs is b_count last aka current uses)
+        if !(graph[cg_inx].edges.len() > b_count[c_len]) {
+            // if there is another then continue otherwise return current best
+            if let Some(c_inx) = b_count.pop() {
+                //Node is used move to next
+                    b_count.pop();
+                    b_set.remove(&c_inx);
+            } else {
+                return Some(best_count);
+            }
+        } else {
+            let c_edge = graph[cg_inx].edges[b_count[c_len]];
+            // we want the other one from the 
+            let n_inx = if c_edge.inx1 == cg_inx {
+                c_edge.inx2
+            } else if c_edge.inx2 == cg_inx {
+                c_edge.inx1
+            } else {
+                println!("error in edge traversal");
+                return None;
+            };
+            if !b_set.contains(&n_inx) {
+                if n_inx == e_graph_inx {
+                    print!("found path of :");
+                    b_vec.push(n_inx);
+                    //best_count = 
+                } else {
+                    cg_inx = n_inx;
+                    b_count.push(0);
+                    b_vec.push(cg_inx);
+                    b_set.insert(cg_inx);
+                }
+            }
+            b_count[c_len] += 1;
+        }
     }
 
     return None;
+}
+
+#[allow(dead_code, unused_assignments)]
+fn count_edge(graph: &Vec<Node>, path: &Vec<usize>, c_best: u128) -> u128 {
+    if path.is_empty() {
+        return c_best;
+    }
+    let mut c_inx = path[0];
+    let mut c_dir = Dir::Right;
+    let mut count = 0;
+    for ii in 1..path.len() {
+        let n_inx = path[ii];
+        
+    }
+    return u128::MAX;
 }
 
 #[allow(dead_code, unused_assignments)]
