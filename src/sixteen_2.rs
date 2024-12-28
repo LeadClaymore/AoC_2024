@@ -197,7 +197,7 @@ impl Dir {
 
 #[allow(dead_code, unused_assignments)]
 pub fn sixteen() -> io::Result<()> {
-    let (maze, s_pos, e_pos) = match read_data(String::from("C:/Users/Clayton Ross/Desktop/Rust/AoC_2024/data/16/data.txt")) {
+    let (maze, s_pos, e_pos) = match read_data(String::from("C:/Users/Clayton Ross/Desktop/Rust/AoC_2024/data/16/test.txt")) {
         Ok(stuff) => {
             println!("Data read");
             println!("s: ({}, {}), e: ({}, {})", stuff.1.0, stuff.1.1, stuff.2.0, stuff.2.1);
@@ -326,14 +326,14 @@ fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
         }
     }
 
-    //testing
-    // for ii in 0..graph.len() {
-    //     print!("de: {}, ({}, {}) ", graph[ii].de, graph[ii].pos.0, graph[ii].pos.1);
-    //     for jj in 0..graph[ii].edges.len() {
-    //         print!("[de: {}, cost: {}, d1: {}, d2: {}]", graph[ii].edges[jj].de, graph[ii].edges[jj].cost, graph[ii].edges[jj].d1.p_dir(), graph[ii].edges[jj].d2.p_dir())
-    //     }
-    //     println!("");
-    // }
+    // testing
+    for ii in 0..graph.len() {
+        print!("de: {}, ({}, {}) ", graph[ii].de, graph[ii].pos.0, graph[ii].pos.1);
+        for jj in 0..graph[ii].edges.len() {
+            print!("[de: {}, cost: {}, d1: {}, d2: {}]", graph[ii].edges[jj].de, graph[ii].edges[jj].cost, graph[ii].edges[jj].d1.p_dir(), graph[ii].edges[jj].d2.p_dir())
+        }
+        println!("");
+    }
 
     let mut best_count = u128::MAX;
     //TODO start might be a dead end
@@ -348,8 +348,10 @@ fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
     while b_vec.len() > 0 {
         // where in the b-vec and b_count the index is
         let c_len = b_count.len() - 1;
+        print!("trying ({}, {}), ", graph[c_len].pos.0, graph[c_len].pos.1);
         // if there are no more paths on this node (rhs is b_count last aka current uses)
         if !(graph[cg_inx].edges.len() > b_count[c_len]) {
+            print!("poping ({}, {}), ", graph[c_len].pos.0, graph[c_len].pos.1);
             // if there is another then continue otherwise return current best
             b_set.remove(&b_vec[c_len]);
             b_vec.pop();
@@ -369,14 +371,19 @@ fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
             if !b_set.contains(&n_inx) {
                 // if the next index is the end then do the calculation of if its the next best path then remove it
                 if n_inx == e_graph_inx {
+                    print!("found end ({}, {}), ", graph[n_inx].pos.0, graph[n_inx].pos.1);
                     b_vec.push(n_inx);
                     let temp_count = count_edge(&graph, &b_vec, best_count);
                     if temp_count != best_count {
-                        println!("found path of :{}", best_count);
+                        println!("cost :{}", temp_count);
+                        for ii in 0..b_vec.len() {
+                            print!("({}, {}) ", graph[b_vec[ii]].pos.0, graph[b_vec[ii]].pos.1);
+                        }
                         best_count = temp_count;
                     }
                     b_vec.pop();
                 } else {
+                    print!("pushing ({}, {}), ", graph[n_inx].pos.0, graph[n_inx].pos.1);
                     cg_inx = n_inx;
                     b_count.push(0);
                     b_vec.push(cg_inx);
@@ -385,6 +392,7 @@ fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
             }
             b_count[c_len] += 1;
         }
+        println!("");
     }
     if best_count != u128::MAX {
         return Some(best_count);
