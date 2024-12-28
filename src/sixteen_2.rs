@@ -46,13 +46,20 @@ impl Node {
                 self.edges[ii].inx1 == inx ||
                 self.edges[ii].inx2 == inx 
             {
-                if lowest_inx != usize::MAX {
-                    
+                //TODO im testing if I can do this this way. 
+                // if it tries to do the second condition after the first failed then fix it
+                if 
+                    lowest_inx == usize::MAX || 
+                    self.edges[ii].cost < self.edges[lowest_inx].cost
+                {
+                    lowest_inx = ii
                 }
             }
         }
         if lowest_inx != usize::MAX {
-
+            return Some(self.edges[lowest_inx].clone());
+        } else {
+            return None;
         }
     }
 }
@@ -339,17 +346,14 @@ fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
     b_count.push(0);
     let mut cg_inx = s_graph_inx; // index to the graph
     while b_vec.len() > 0 {
+        // where in the b-vec and b_count the index is
         let c_len = b_count.len() - 1;
         // if there are no more paths on this node (rhs is b_count last aka current uses)
         if !(graph[cg_inx].edges.len() > b_count[c_len]) {
             // if there is another then continue otherwise return current best
-            if let Some(c_inx) = b_count.pop() {
-                //Node is used move to next
-                    b_count.pop();
-                    b_set.remove(&c_inx);
-            } else {
-                return Some(best_count);
-            }
+            b_set.remove(&b_vec[c_len]);
+            b_vec.pop();
+            b_count.pop();
         } else {
             let c_edge = graph[cg_inx].edges[b_count[c_len]];
             // we want the other one from the 
@@ -361,11 +365,17 @@ fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
                 println!("error in edge traversal");
                 return None;
             };
+            // if the hashset does not contain the next node's index in the graph vec then it could be added
             if !b_set.contains(&n_inx) {
+                // if the next index is the end then do the calculation of if its the next best path then remove it
                 if n_inx == e_graph_inx {
-                    print!("found path of :");
                     b_vec.push(n_inx);
-                    //best_count = 
+                    let temp_count = count_edge(&graph, &b_vec, best_count);
+                    if temp_count != best_count {
+                        println!("found path of :{}", best_count);
+                        best_count = temp_count;
+                    }
+                    b_vec.pop();
                 } else {
                     cg_inx = n_inx;
                     b_count.push(0);
@@ -376,10 +386,13 @@ fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
             b_count[c_len] += 1;
         }
     }
-
+    if best_count != u128::MAX {
+        return Some(best_count);
+    }
     return None;
 }
 
+/// this 100% breaks if edges dont have the indexs properly made
 #[allow(dead_code, unused_assignments)]
 fn count_edge(graph: &Vec<Node>, path: &Vec<usize>, c_best: u128) -> u128 {
     if path.is_empty() {
@@ -390,9 +403,20 @@ fn count_edge(graph: &Vec<Node>, path: &Vec<usize>, c_best: u128) -> u128 {
     let mut count = 0;
     for ii in 1..path.len() {
         let n_inx = path[ii];
-        
+        let c_edge = graph[c_inx].find_edge(n_inx).unwrap();
+        count += c_edge.cost;
+        if c_dir != c_edge.inx_to_dir(c_inx).unwrap() {
+            count += 1000;
+        }
+        c_inx = n_inx;
+        c_dir = c_edge.inx_to_dir(n_inx).unwrap();
     }
-    return u128::MAX;
+
+    if count == 0 || count > c_best {
+        return c_best;
+    } else {
+        return count;
+    }
 }
 
 #[allow(dead_code, unused_assignments)]
