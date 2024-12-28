@@ -258,8 +258,8 @@ fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
     let mut e_maze = Vec::new();
     let mut graph = Vec::new();
 
-    let mut s_graph_inx = 0;
-    let mut e_graph_inx = 1;
+    let s_graph_inx = 0;
+    let e_graph_inx = 1;
     graph.push(Node { de: false,pos: s_pos.clone(), edges: Vec::new() });
     graph.push(Node { de: false,pos: e_pos.clone(), edges: Vec::new() });
 
@@ -449,6 +449,9 @@ fn find_edge(maze: &mut Vec<Vec<MP>>, nodes: &mut Vec<Node>, n_inx: usize, s_pos
     let mut c_pos = s_pos.clone();
     let mut c_dir = s_dir;
     let mut moved = false;
+
+    //debug stuff
+    let mut debug_path = Vec::new();
     loop {
         moved = false;
         for dd in c_dir.all_but_opose() {
@@ -463,6 +466,7 @@ fn find_edge(maze: &mut Vec<Vec<MP>>, nodes: &mut Vec<Node>, n_inx: usize, s_pos
                         cost += 1000;
                     }
                     moved = true;
+                    debug_path.push(n_pos.clone());
                     break;
                 },
                 MP::Node => dead_end = false,
@@ -474,6 +478,7 @@ fn find_edge(maze: &mut Vec<Vec<MP>>, nodes: &mut Vec<Node>, n_inx: usize, s_pos
                     continue;
                 },
             }
+            debug_path.push(n_pos.clone());
             c_pos = n_pos;
             cost += 1;
             if dd != c_dir {
@@ -498,6 +503,7 @@ fn find_edge(maze: &mut Vec<Vec<MP>>, nodes: &mut Vec<Node>, n_inx: usize, s_pos
                 }
             }
             nodes[n_inx].edges.push(ee);
+            print_path(maze, &debug_path);
             return;
         }
         if moved {
@@ -722,6 +728,26 @@ fn traverse_maze(maze: &Vec<Vec<char>>, pos: (usize, usize), dir: Dir, end: &(us
     } else {
         return Some(cur_best);
     }
+}
+
+/// prints the maze and replaces 1 position with a char passed in
+#[allow(dead_code, unused_assignments)]
+fn print_path(maze: &Vec<Vec<MP>>, path: &Vec<(usize, usize)>) {
+    for ii in 0..maze.len() {
+        for jj in 0..maze[ii].len() {
+            if path.contains(&(ii, jj)) {
+                print!("@");
+            } else {
+                match maze[ii][jj] {
+                    MP::Wall => print!("#"),
+                    MP::Node | MP::DeadEnd => print!("*"),
+                    MP::Empty | MP::Edge => print!("."),
+                }
+            }
+        }
+        println!("");
+    }
+
 }
 
 /// prints the maze and replaces 1 position with a char passed in
