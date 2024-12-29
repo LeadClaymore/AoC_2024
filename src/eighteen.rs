@@ -1,51 +1,10 @@
-use std::collections::HashSet;
+//use std::collections::HashSet;
 use std::fs::File;
 use std::io::{self, BufRead};
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum Dir {
-    Up,
-    Down,
-    Left,
-    Right,
-}
-
-#[allow(dead_code, unused_assignments)]
-impl Dir {
-    // ima try a new thing where I just subtract both by 1 so I can have -1's without conversions
-    /// returns (ii, jj)
-    fn c_cords(&self) -> (usize, usize) {
-        return match self {
-            Dir::Down => (2, 1),
-            Dir::Up => (0, 1),
-            Dir::Right => (1, 2),
-            Dir::Left => (1, 0),
-        };
-    }
-
-    fn p_dir(&self) -> String {
-        return match self {
-            Dir::Down => "Down".to_string(),
-            Dir::Up => "Up".to_string(),
-            Dir::Right => "Right".to_string(),
-            Dir::Left => "Left".to_string(),
-        };
-    }
-
-    /// returns if its vertical or horizontal
-    fn vert(&self) -> bool {
-        return match self {
-            Dir::Down => true,
-            Dir::Up => true,
-            Dir::Right => false,
-            Dir::Left => false,
-        };
-    }
-}
-
 #[allow(dead_code, unused_assignments)]
 pub fn eighteen() -> io::Result<()> {
-    let (pos_vec) = match read_data(String::from("data/18/test.txt")) {
+    let _pos_vec = match read_data(String::from("data/18/test.txt")) {
         Ok(stuff) => {
             println!("Data read");
             // for ii in 0..stuff.0.len() {

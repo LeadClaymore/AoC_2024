@@ -2,6 +2,7 @@ use std::collections::HashSet;
 //use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, BufRead};
+use std::iter::Map;
 use std::{u128, u32, usize};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
@@ -197,23 +198,23 @@ impl Dir {
 
 #[allow(dead_code, unused_assignments)]
 pub fn sixteen() -> io::Result<()> {
-    let (maze, s_pos, e_pos) = match read_data(String::from("C:/Users/Clayton Ross/Desktop/Rust/AoC_2024/data/16/test.txt")) {
+    let (maze, s_pos, e_pos) = match read_data(String::from("C:/Users/Clayton Ross/Desktop/Rust/AoC_2024/data/16/data.txt")) {
         Ok(stuff) => {
             println!("Data read");
             println!("s: ({}, {}), e: ({}, {})", stuff.1.0, stuff.1.1, stuff.2.0, stuff.2.1);
-            for ii in 0..stuff.0.len() {
-                for jj in 0..stuff.0[ii].len() {
-                    print!("{}", stuff.0[ii][jj]);
-                }
-                println!("");
-            }
+            // for ii in 0..stuff.0.len() {
+            //     for jj in 0..stuff.0[ii].len() {
+            //         print!("{}", stuff.0[ii][jj]);
+            //     }
+            //     println!("");
+            // }
             stuff
         },
         Err(ret) => return Err(ret),
     };
 
 
-    if let Some(answer) = traverse_maze_4(&maze, s_pos, &e_pos) {
+    if let Some(answer) = traverse_maze_4(&maze, s_pos, &e_pos, false) {
         println!("answer = {}", answer);
     }
     Ok(())
@@ -254,7 +255,7 @@ fn read_data(file: String) -> io::Result<(Vec<Vec<char>>, (usize, usize), (usize
 
 //traverse maze 5 (or 4 depending on count) is going to first take the maze, and atempt to turn it into a graph of costs between two points
 #[allow(dead_code, unused_assignments)]
-fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize, usize)) -> Option<u128> {
+fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize, usize), debug: bool) -> Option<u128> {
     let mut e_maze = Vec::new();
     let mut graph = Vec::new();
 
@@ -337,21 +338,23 @@ fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
     }
 
     // testing
-    for ii in 0..graph.len() {
-        println!("({}, {}) ", graph[ii].pos.0, graph[ii].pos.1);
-        for jj in 0..graph[ii].edges.len() {
-            println!("\t[({}, {}){} ={}= ({}, {}){}] ", 
-                graph[ii].edges[jj].p1.0, 
-                graph[ii].edges[jj].p1.1, 
-                graph[ii].edges[jj].d1.p_dir_c(), 
-                graph[ii].edges[jj].cost, 
-                graph[ii].edges[jj].p2.0, 
-                graph[ii].edges[jj].p2.1, 
-                graph[ii].edges[jj].d2.p_dir_c()
-            );
+    if debug {
+        for ii in 0..graph.len() {
+            println!("({}, {}) ", graph[ii].pos.0, graph[ii].pos.1);
+            for jj in 0..graph[ii].edges.len() {
+                println!("\t[({}, {}){} ={}= ({}, {}){}] ", 
+                    graph[ii].edges[jj].p1.0, 
+                    graph[ii].edges[jj].p1.1, 
+                    graph[ii].edges[jj].d1.p_dir_c(), 
+                    graph[ii].edges[jj].cost, 
+                    graph[ii].edges[jj].p2.0, 
+                    graph[ii].edges[jj].p2.1, 
+                    graph[ii].edges[jj].d2.p_dir_c()
+                );
+            }
         }
     }
-
+    
     let mut best_count = u128::MAX;
     //TODO start might be a dead end
     //need to try to traverse the nodes try to copy the tm3 but with the new graph
@@ -361,24 +364,34 @@ fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
     b_vec.push(s_graph_inx);
     let mut b_count = Vec::new();
     b_count.push(0);
-    let mut cg_inx = s_graph_inx; // index to the graph
+    //let mut b_vec[c_len] = s_graph_inx; // index to the graph
     while b_vec.len() > 0 {
         // where in the b-vec and b_count the index is
         let c_len = b_count.len() - 1;
-        print!("trying ({}, {}), ", graph[b_vec[c_len]].pos.0, graph[b_vec[c_len]].pos.1);
+        
+        //print out the cords that each elem in b_vec point to
+        if debug {
+            for ii in 0..b_vec.len() {
+                print!("({},{}) ", graph[b_vec[ii]].pos.0, graph[b_vec[ii]].pos.1 );
+            }
+            print!(" trying ({}, {}), ", graph[b_vec[c_len]].pos.0, graph[b_vec[c_len]].pos.1);
+        }
+
         // if there are no more paths on this node (rhs is b_count last aka current uses)
-        if !(graph[cg_inx].edges.len() > b_count[c_len]) {
-            print!("poping ({}, {}), ", graph[b_vec[c_len]].pos.0, graph[b_vec[c_len]].pos.1);
+        if !(graph[b_vec[c_len]].edges.len() > b_count[c_len]) {
+            if debug {
+                print!("poping ({}, {}), ", graph[b_vec[c_len]].pos.0, graph[b_vec[c_len]].pos.1);
+            }
             // if there is another then continue otherwise return current best
             b_set.remove(&b_vec[c_len]);
             b_vec.pop();
             b_count.pop();
         } else {
-            let c_edge = graph[cg_inx].edges[b_count[c_len]];
+            let c_edge = graph[b_vec[c_len]].edges[b_count[c_len]];
             // we want the other one from the 
-            let n_inx = if c_edge.inx1 == cg_inx {
+            let n_inx = if c_edge.inx1 == b_vec[c_len] {
                 c_edge.inx2
-            } else if c_edge.inx2 == cg_inx {
+            } else if c_edge.inx2 == b_vec[c_len] {
                 c_edge.inx1
             } else {
                 println!("error in edge traversal");
@@ -388,28 +401,33 @@ fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
             if !b_set.contains(&n_inx) {
                 // if the next index is the end then do the calculation of if its the next best path then remove it
                 if n_inx == e_graph_inx {
-                    print!("found end ({}, {}), ", graph[b_vec[c_len]].pos.0, graph[b_vec[c_len]].pos.1);
-                    b_vec.push(n_inx);
-                    for ii in 0..b_vec.len() {
-                        print!("({}, {}) ", graph[b_vec[ii]].pos.0, graph[b_vec[ii]].pos.1);
+                    if debug {
+                        print!("found end ({}, {}), ", graph[b_vec[c_len]].pos.0, graph[b_vec[c_len]].pos.1);
                     }
+                    b_vec.push(n_inx);
+                    // for ii in 0..b_vec.len() {
+                    //     print!("({}, {}) ", graph[b_vec[ii]].pos.0, graph[b_vec[ii]].pos.1);
+                    // }
                     let temp_count = count_edge(&graph, &b_vec);
-                    if temp_count > best_count {
+                    if temp_count < best_count {
                         best_count = temp_count;
                     }
-                    print!("cost :{}", temp_count);
+                    if debug {
+                        print!("cost :{}", temp_count);
+                    }
                     b_vec.pop();
                 } else {
-                    print!("pushing ({}, {}), ", graph[n_inx].pos.0, graph[n_inx].pos.1);
-                    cg_inx = n_inx;
+                    if debug {
+                        print!("pushing ({}, {}), ", graph[n_inx].pos.0, graph[n_inx].pos.1);
+                    }
                     b_count.push(0);
-                    b_vec.push(cg_inx);
-                    b_set.insert(cg_inx);
+                    b_vec.push(n_inx);
+                    b_set.insert(n_inx);
                 }
             }
             b_count[c_len] += 1;
         }
-        println!("");
+        if debug { println!(""); }
     }
     if best_count != u128::MAX {
         return Some(best_count);
@@ -451,7 +469,7 @@ fn find_edge(maze: &mut Vec<Vec<MP>>, nodes: &mut Vec<Node>, n_inx: usize, s_pos
     let mut moved = false;
 
     //debug stuff
-    let mut debug_path = Vec::new();
+    //let mut debug_path = Vec::new();
     loop {
         moved = false;
         for dd in c_dir.all_but_opose() {
@@ -466,7 +484,7 @@ fn find_edge(maze: &mut Vec<Vec<MP>>, nodes: &mut Vec<Node>, n_inx: usize, s_pos
                         cost += 1000;
                     }
                     moved = true;
-                    debug_path.push(n_pos.clone());
+                    //debug_path.push(n_pos.clone());
                     break;
                 },
                 MP::Node => dead_end = false,
@@ -478,7 +496,7 @@ fn find_edge(maze: &mut Vec<Vec<MP>>, nodes: &mut Vec<Node>, n_inx: usize, s_pos
                     continue;
                 },
             }
-            debug_path.push(n_pos.clone());
+            //debug_path.push(n_pos.clone());
             c_pos = n_pos;
             cost += 1;
             if dd != c_dir {
@@ -503,7 +521,7 @@ fn find_edge(maze: &mut Vec<Vec<MP>>, nodes: &mut Vec<Node>, n_inx: usize, s_pos
                 }
             }
             nodes[n_inx].edges.push(ee);
-            print_path(maze, &debug_path);
+            //print_path(maze, &debug_path);
             return;
         }
         if moved {
