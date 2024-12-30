@@ -21,16 +21,41 @@ pub fn eighteen() -> io::Result<()> {
     //pos_vec.iter().for_each(|(ii, jj)| println!("({ii}, {jj})"));
     let test = false;
     if test {
-        let maze = form_map(pos_vec, (6, 6), (0, 12), true);
-        let n_map = form_cost_map(&maze, (6, 6), true);
-        let answer = form_path(&n_map, (0, 0), true);
-        println!("answer: {}", answer.unwrap().len() - 1);
+        let mut inx = 12;
+        let mut maze = form_map(None, &pos_vec, (6, 6), (0, 12), true);
+        let mut n_map = form_cost_map(&maze, (6, 6), true);
+        loop {
+            if let Some(_answer) = form_path(&n_map, (0, 0), false) {
+                inx += 1;
+                maze = form_map(Some(maze), &pos_vec, (6, 6), (inx, inx + 1), false);
+                n_map = form_cost_map(&maze, (6, 6), false);
+            } else {
+                break;
+            }
+
+        }
+        println!("answer: ({}, {})", pos_vec[inx].0, pos_vec[inx].1);
     } else {
-        let maze = form_map(pos_vec, (70, 70), (0, 1024), true);
-        let n_map = form_cost_map(&maze, (70, 70), true);
-        let answer = form_path(&n_map, (0, 0), true);
-        println!("answer: {}", answer.unwrap().len() - 1);
+        let mut inx = 1024;
+        let mut maze = form_map(None, &pos_vec, (70, 70), (0, 1024), true);
+        let mut n_map = form_cost_map(&maze, (70, 70), true);
+        loop {
+            if let Some(_answer) = form_path(&n_map, (0, 0), false) {
+                inx += 1;
+                maze = form_map(Some(maze), &pos_vec, (70, 70), (inx, inx + 1), false);
+                n_map = form_cost_map(&maze, (70, 70), false);
+            } else {
+                break;
+            }
+
+        }
+        println!("answer: ({}, {})", pos_vec[inx].0, pos_vec[inx].1);
+        // let maze = form_map(pos_vec, (70, 70), (0, 1024), true);
+        // let n_map = form_cost_map(&maze, (70, 70), true);
+        // let answer = form_path(&n_map, (0, 0), true);
+        // println!("answer: {}", answer.unwrap().len() - 1);
     }
+    //TODO p2, make form map take the starting map optionaly, and a then increment the range 1 by 1 in a for loop untill answer is None then print the element that does it
     Ok(())
 }
 
@@ -61,21 +86,28 @@ fn read_data(file: String) -> io::Result<Vec<(usize, usize)>> {
 }
 
 #[allow(dead_code, unused_assignments)]
-fn form_map(corr: Vec<(usize, usize)>, size: (usize, usize), c_range: (usize, usize), debug: bool) -> Vec<Vec<char>> {
+fn form_map(c_map: Option<Vec<Vec<char>>>, corr: &Vec<(usize, usize)>, size: (usize, usize), c_range: (usize, usize), debug: bool) -> Vec<Vec<char>> {
+
     if debug {println!("Forming Maze");}
+    let mut ret = match c_map {
+        None => {
+            let mut temp= Vec::new();
+    
+            for _ in 0..=size.0 {
+                temp.push(vec!['.'; size.1 + 1]);
+            }
 
-    let mut ret = Vec::new();
-    for _ in 0..=size.0 {
-        ret.push(vec!['.'; size.1 + 1]);
-    }
-
-    if debug {
-        println!("Filling Maze, bounds: ({}, {})", ret.len(), ret[0].len());
-        ret.iter().for_each(|line| {
-            line.iter().for_each(|cc| print!("{cc}"));
-            println!("");
-        });
-    }
+            if debug {
+                println!("Filling Maze, bounds: ({}, {})", temp.len(), temp[0].len());
+                temp.iter().for_each(|line| {
+                    line.iter().for_each(|cc| print!("{cc}"));
+                    println!("");
+                });
+            }
+            temp
+        },
+        Some(map) => map,
+    };
 
     // they do jj, ii just remember
     for ii in c_range.0..c_range.1 {
@@ -98,7 +130,7 @@ fn form_cost_map(map: &Vec<Vec<char>>, e_pos: (usize, usize), debug: bool) -> Ve
     let bound = (map.len(), map[0].len());
     if debug { println!("initilizing nodemap"); }
     let mut ret = Vec::new();
-    for ii in 0..bound.0 {
+    for _ii in 0..bound.0 {
         ret.push(vec![u32::MAX; bound.1]);
     }
     if debug { println!("initilizing done, starting building it"); }

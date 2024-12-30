@@ -355,8 +355,10 @@ fn traverse_maze_4(maze: &Vec<Vec<char>>, s_pos: (usize, usize), e_pos: &(usize,
         }
     }
     
+
+    //TODO after doing 18 p1 I realized that a* could work if the turns are accounted for see the n_map that I made in 18
+
     let mut best_count = u128::MAX;
-    //TODO start might be a dead end
     //need to try to traverse the nodes try to copy the tm3 but with the new graph
     let mut b_set = HashSet::new(); //holds inx of nodes
     b_set.insert(s_graph_inx);
