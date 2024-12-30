@@ -4,7 +4,7 @@ use std::io::{self, BufRead};
 
 #[allow(dead_code, unused_assignments)]
 pub fn eighteen() -> io::Result<()> {
-    let pos_vec = match read_data(String::from("data/18/test.txt")) {
+    let pos_vec = match read_data(String::from("data/18/data.txt")) {
         Ok(stuff) => {
             println!("Data read");
             // for ii in 0..stuff.0.len() {
@@ -19,10 +19,18 @@ pub fn eighteen() -> io::Result<()> {
     };
     //print each line
     //pos_vec.iter().for_each(|(ii, jj)| println!("({ii}, {jj})"));
-    let maze = form_map(pos_vec, (6, 6), (0, 12), true);
-    let n_map = form_cost_map(&maze, (6, 6), true);
-    let answer = form_path(&n_map, (0, 0), true);
-    println!("answer: {}", answer.unwrap().len() - 1);
+    let test = false;
+    if test {
+        let maze = form_map(pos_vec, (6, 6), (0, 12), true);
+        let n_map = form_cost_map(&maze, (6, 6), true);
+        let answer = form_path(&n_map, (0, 0), true);
+        println!("answer: {}", answer.unwrap().len() - 1);
+    } else {
+        let maze = form_map(pos_vec, (70, 70), (0, 1024), true);
+        let n_map = form_cost_map(&maze, (70, 70), true);
+        let answer = form_path(&n_map, (0, 0), true);
+        println!("answer: {}", answer.unwrap().len() - 1);
+    }
     Ok(())
 }
 
