@@ -14,7 +14,7 @@ pub fn nineteen() -> io::Result<()> {
     Ok(())
 }
 
-/// returns the map, the start, and end locations
+/// returns patterns and threads
 #[allow(dead_code, unused_assignments)]
 fn read_data(file: String, debug: bool) -> io::Result<(Vec<Vec<char>>, Vec<Vec<char>>)> {
     let mut ret_t: Vec<Vec<char>> = Vec::new();
@@ -60,3 +60,62 @@ fn read_data(file: String, debug: bool) -> io::Result<(Vec<Vec<char>>, Vec<Vec<c
     }
     return Ok((ret_t, ret_p));
 }
+
+///returns a vector for each pattern in each is a vector of indexes of what threads make the pattern
+#[allow(dead_code, unused_assignments)]
+fn solve_patterns(patterns: &Vec<Vec<char>>, threads: &Vec<Vec<char>>) -> Vec<Vec<usize>> {
+    let mut ret = Vec::new();
+    for pp in 0..patterns.len() {
+        let line = Vec::new();
+        
+        ret.push(line);
+    }
+    return ret;
+}
+
+//the way this is going to work is that for each word we 
+#[allow(dead_code, unused_assignments)]
+fn compose_thread(pattern: &Vec<char>, threads: &Vec<Vec<char>>) -> Vec<usize> {
+    // for ii in 0..pattern.len() {
+    //     for jj in 0..threads.len() {
+    //         for kk in 0..threads[ii].len() {
+    //             if pattern[ii] == 
+    //         }
+    //     }
+    // }
+}
+
+///finds instances of cv2 in cv1 and returns a vec of where they start
+#[allow(dead_code, unused_assignments)]
+fn contains(cv1: &Vec<char>, cv2: &Vec<char>) -> Option<Vec<usize>> {
+    let mut ret = Vec::new();
+    // we subtract cv2 to get where the instance of cv2 could start and the +1 is so we get every char possible
+    for ii in 0..(cv1.len() - cv2.len() + 1) {
+        if cv1[ii] == cv1[0] {
+            let mut contains = true;
+            for jj in 0..cv2.len() {
+                if cv1[ii + jj] != cv2[jj] {
+                    contains = false;
+                    break;
+                }
+            }
+            if contains {
+                ret.push(ii);
+            }
+        }
+    }
+    if ret.is_empty() {
+        return None;
+    } else {
+        return Some(ret);
+    }
+}
+
+//test
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    
+}
+//end
