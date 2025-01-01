@@ -76,6 +76,7 @@ fn solve_patterns(patterns: &Vec<Vec<char>>, threads: &Vec<Vec<char>>) -> Vec<Ve
 //the way this is going to work is that for each word we 
 #[allow(dead_code, unused_assignments)]
 fn compose_thread(pattern: &Vec<char>, threads: &Vec<Vec<char>>) -> Vec<usize> {
+    let ret = Vec::new();
     // for ii in 0..pattern.len() {
     //     for jj in 0..threads.len() {
     //         for kk in 0..threads[ii].len() {
@@ -83,22 +84,27 @@ fn compose_thread(pattern: &Vec<char>, threads: &Vec<Vec<char>>) -> Vec<usize> {
     //         }
     //     }
     // }
+    return ret;
 }
 
 ///finds instances of cv2 in cv1 and returns a vec of where they start
 #[allow(dead_code, unused_assignments)]
-fn contains(cv1: &Vec<char>, cv2: &Vec<char>) -> Option<Vec<usize>> {
+fn contains(cv1: &Vec<char>, cv2: &Vec<char>, debug: bool) -> Option<Vec<usize>> {
+    if debug { println!("contains start"); }
     let mut ret = Vec::new();
     // we subtract cv2 to get where the instance of cv2 could start and the +1 is so we get every char possible
     for ii in 0..(cv1.len() - cv2.len() + 1) {
-        if cv1[ii] == cv1[0] {
+        if cv1[ii] == cv2[0] {
+            if debug { print!("{}:{} ", ii, cv2[0]); }
             let mut contains = true;
-            for jj in 0..cv2.len() {
+            for jj in 1..cv2.len() {
                 if cv1[ii + jj] != cv2[jj] {
                     contains = false;
                     break;
                 }
+                if debug { print!("{}:{} ", ii + jj, cv2[jj]); }
             }
+            if debug { println!(""); }
             if contains {
                 ret.push(ii);
             }
@@ -116,6 +122,25 @@ fn contains(cv1: &Vec<char>, cv2: &Vec<char>) -> Option<Vec<usize>> {
 mod tests {
     use super::*;
 
-    
+    #[test]
+    fn test_contains1() {
+        let word1 = "letters".chars().collect();
+        //let word1  = vec!['l', 'e', 't', 't', 'e', 'r', 's'];
+        let word2  = vec!['e'];
+        let answer = contains(&word1, &word2, true).unwrap();
+        let lhs: usize = vec![1, 4].iter().sum();
+        let rhs: usize = answer.iter().sum();
+        assert_eq!(lhs, rhs);
+    }
+
+    #[test]
+    fn test_contains2() {
+        let word1 = "jajajojaj".chars().collect();
+        let word2 = "ja".chars().collect();
+        let answer = contains(&word1, &word2, true).unwrap();
+        let lhs: usize = vec![0, 2, 6].iter().sum();
+        let rhs: usize = answer.iter().sum();
+        assert_eq!(lhs, rhs);
+    }
 }
 //end
