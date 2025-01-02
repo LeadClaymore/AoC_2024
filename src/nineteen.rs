@@ -3,7 +3,7 @@ use std::io::{self, BufRead};
 
 #[allow(dead_code, unused_assignments)]
 pub fn nineteen() -> io::Result<()> {
-    let (threads, patterns) = match read_data(String::from("data/19/test.txt"), true) {
+    let (threads, patterns) = match read_data(String::from("data/19/data.txt"), true) {
         Ok(stuff) => {
             println!("Data read");
             stuff
@@ -11,7 +11,7 @@ pub fn nineteen() -> io::Result<()> {
         Err(ret) => return Err(ret),
     };
 
-    let answers = solve_patterns(&patterns, &threads, true);
+    let answers = solve_patterns(&patterns, &threads, false);
     println!("Answer: {}", answers.iter().filter(|idk| idk.is_some()).count());
     Ok(())
 }
@@ -63,9 +63,9 @@ fn read_data(file: String, debug: bool) -> io::Result<(Vec<Vec<char>>, Vec<Vec<c
     return Ok((ret_t, ret_p));
 }
 
-///returns a vector for each pattern in each is a vector of indexes of what threads make the pattern
+///returns a vector for each pattern in each optionaly a vector of indexes of (start_inx, size, threads_inx) if it exists
 #[allow(dead_code, unused_assignments)]
-fn solve_patterns(patterns: &Vec<Vec<char>>, threads: &Vec<Vec<char>>, debug: bool) -> Vec<Option<Vec<(usize, usize)>>> {
+fn solve_patterns(patterns: &Vec<Vec<char>>, threads: &Vec<Vec<char>>, debug: bool) -> Vec<Option<Vec<(usize, usize, usize)>>> {
     let mut ret = Vec::new();
     for pp in 0..patterns.len() {
         if debug { 
@@ -79,6 +79,7 @@ fn solve_patterns(patterns: &Vec<Vec<char>>, threads: &Vec<Vec<char>>, debug: bo
         }
         if debug {
             for oo in 0..options.len() {
+                print!("\t");
                 threads[oo].iter().for_each(|cc| print!("{cc}") );
                 print!(": ");
                 if let Some(opt) = &options[oo] {
@@ -101,7 +102,7 @@ fn solve_patterns(patterns: &Vec<Vec<char>>, threads: &Vec<Vec<char>>, debug: bo
                 for jj in 0..list.len() {
                     // we only want the threads that work at 0 to start it
                     if list[jj] == 0 {
-                        paths.push(vec![(0, threads[ii].len())]);
+                        paths.push(vec![(0, threads[ii].len(), ii)]);
                     }
                 }
             }
@@ -115,15 +116,19 @@ fn solve_patterns(patterns: &Vec<Vec<char>>, threads: &Vec<Vec<char>>, debug: bo
             if debug { println!("currently {} paths", paths.len()) }
             let mut next_path = Vec::new();
             //pp is the index of the path
-            for pp in 0..paths.len() {
+            for yy in 0..paths.len() {
                 if debug { 
-                    print!("\ttrying path {pp}: ");
-                    paths[pp].iter().for_each(|(p1, p2)| print!("({p1}, {p2}) "));
+                    print!("\ttrying path {yy}: ");
+                    paths[yy].iter().for_each(|(p1, p2, p3)| {
+                        print!("({p1}, {p2}, ");
+                        threads[*p3].iter().for_each(|cc| print!("{cc}"));
+                        print!(") ");
+                    });
                     println!("");
                 }
                 //this is the last
-                if paths[pp].len() > 0 {
-                    let target_inx = paths[pp][paths[pp].len() - 1];
+                if paths[yy].len() > 0 {
+                    let target_inx = paths[yy][paths[yy].len() - 1];
                     if debug { println!("\t\ttarget_inx ({}, {})", target_inx.0, target_inx.1) }
                     // now we are looking for another thread to fill the void
                     for ii in 0..options.len() {
@@ -131,17 +136,18 @@ fn solve_patterns(patterns: &Vec<Vec<char>>, threads: &Vec<Vec<char>>, debug: bo
                         if let Some(list) = &options[ii] {
                             // jj is inx of list (aka where the useable thread would start in the inx of pattern)
                             for jj in 0..list.len() {
-                                if debug { 
-                                    print!("\t\t\ttrying {} aka ", list[jj]);
-                                    threads[list[jj]].iter().for_each(|cc| print!("{cc}"));
-                                    println!("");
-                                }
+                                // if debug { 
+                                //     print!("\t\t\ttrying {} aka ", list[jj]);
+                                //     threads[list[jj]].iter().for_each(|cc| print!("{cc}"));
+                                //     println!("");
+                                // }
                                 // we only want the threads at the next open space (target_inx.1 + target_inx.0)
                                 if list[jj] == (target_inx.1 + target_inx.0) {
-                                    if debug { print!("\t\t\t\tTarget found!, \n");}
-                                    let mut next = paths[pp].clone();
-                                    next.push((list[jj], threads[ii].len()));
-                                    if (ii + threads[ii].len()) == patterns[ii].len() {
+                                    if debug { print!("\t\t\t\tTarget found!, p_len: {}, cur_len: {}\n", patterns[pp].len(), list[jj] + threads[ii].len());}
+                                    let mut next = paths[yy].clone();
+                                    next.push((list[jj], threads[ii].len(), ii));
+                                    if (list[jj] + threads[ii].len()) == patterns[pp].len() {
+                                        if debug { print!("\t\t\t\tEnd found!, \n");}
                                         ret.push(Some(next));
                                         found = true;
                                         break;
