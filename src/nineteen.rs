@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use std::fs::File;
 use std::io::{self, BufRead};
+use std::path;
 
 #[allow(dead_code, unused_assignments)]
 pub fn nineteen() -> io::Result<()> {
@@ -11,6 +12,9 @@ pub fn nineteen() -> io::Result<()> {
         },
         Err(ret) => return Err(ret),
     };
+
+    let answers = solve_patterns(&patterns, &threads);
+    println!("Answer: {}", answers.iter().filter(|idk| idk.is_some()).count());
     Ok(())
 }
 
@@ -63,27 +67,66 @@ fn read_data(file: String, debug: bool) -> io::Result<(Vec<Vec<char>>, Vec<Vec<c
 
 ///returns a vector for each pattern in each is a vector of indexes of what threads make the pattern
 #[allow(dead_code, unused_assignments)]
-fn solve_patterns(patterns: &Vec<Vec<char>>, threads: &Vec<Vec<char>>) -> Vec<Vec<usize>> {
+fn solve_patterns(patterns: &Vec<Vec<char>>, threads: &Vec<Vec<char>>) -> Vec<Option<Vec<(usize, usize)>>> {
     let mut ret = Vec::new();
     for pp in 0..patterns.len() {
-        let line = Vec::new();
-        
-        ret.push(line);
-    }
-    return ret;
-}
+        let mut options = Vec::new();
+        for tt in 0..threads.len() {
+            options.push(contains(&patterns[pp], &threads[tt], false));
+        }
+        //paths is a list of (where the thread goes, how long the thread is)
+        let mut paths = Vec::new();
+        // ii is the index of options (aka possible threads to use)
+        for ii in 0..options.len() {
+            // list is an option that can be used (aka not none)
+            if let Some(list) = &options[ii] {
+                // jj is inx of list (aka where the useable thread would start in the inx of pattern)
+                for jj in 0..list.len() {
+                    // we only want the threads that work at 0 to start it
+                    if list[jj] == 0 {
+                        paths.push(vec![(ii, threads[ii].len())]);
+                    }
+                }
+            }
+        }
 
-//the way this is going to work is that for each word we 
-#[allow(dead_code, unused_assignments)]
-fn compose_thread(pattern: &Vec<char>, threads: &Vec<Vec<char>>) -> Vec<usize> {
-    let ret = Vec::new();
-    // for ii in 0..pattern.len() {
-    //     for jj in 0..threads.len() {
-    //         for kk in 0..threads[ii].len() {
-    //             if pattern[ii] == 
-    //         }
-    //     }
-    // }
+        let mut found = false;
+        // while there are valid paths to take
+        // initial condition is the options we went through earlier
+        while paths.len() > 0 {
+            //pp is the index of the path
+            for pp in 0..paths.len() {
+                //this is the last
+                if paths[pp].len() > 0 {
+                    let target_inx = paths[pp][paths[pp].len() - 1];
+                    // now we are looking for another thread to fill the void
+                    for ii in 0..options.len() {
+                        // list is an option that can be used (aka not none)
+                        if let Some(list) = &options[ii] {
+                            // jj is inx of list (aka where the useable thread would start in the inx of pattern)
+                            for jj in 0..list.len() {
+                                // we only want the threads at the next open space (target_inx.1 + target_inx.0)
+                                if list[jj] == (target_inx.1 + target_inx.0) {
+                                    paths[pp].push((ii, threads[ii].len()));
+                                    if (ii + threads[ii].len()) == patterns[ii].len() {
+                                        ret.push(Some(paths[pp].clone()));
+                                        found = true;
+                                    }
+                                }
+                                if found { break; }
+                            }
+                        }
+                        if found { break; }
+                    }
+                }
+                if found { break; }
+            }
+            if found { break; }
+        }
+        if !found {
+            ret.push(None);
+        }
+    }
     return ret;
 }
 
